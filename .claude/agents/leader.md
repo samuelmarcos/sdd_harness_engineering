@@ -16,9 +16,12 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
 1. **Ler o estado** no início: `specs/BACKLOG.md`, todos os `status.json`,
    `.claude/session-context/`.
 2. **Decidir o próximo passo** conforme o ciclo SDD (ver `AGENTS.md`).
-3. **Delegar** ao subagente correto:
-   - Falta spec → `spec_author`
-   - Spec aprovada → `implementer`
+3. **Delegar** ao subagente ou skill correta:
+   - Projeto brownfield sem assessment recente → leia e execute
+     **`.claude/skills/mapping/SKILL.md`** (`/mapear`)
+   - Nova ideia no backlog → **`/roadmap`** (depois `spec_author` / `sdd-init`)
+   - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido)
+   - Spec aprovada → `implementer` ou skill `sdd-implement` (com contexto do módulo)
    - Implementação concluída → skill `sdd-review` (coordena `quality-assurance` + `reviewer`)
    - Revisão OK (QA ✅ + Reviewer ✅) → você marca `status.json` = `done`
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
@@ -46,6 +49,21 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
 Você **nunca** transiciona de `spec_ready` para implementação sem o humano dizer
 "aprovado" / "pode implementar". Quando uma spec fica pronta, você apresenta os
 3 arquivos (`requirements.md`, `design.md`, `tasks.md`) e **aguarda**.
+
+## Roteamento brownfield (obrigatório)
+
+Antes de **`sdd-init`** ou **`sdd-implement`** em feature que altera paths de
+`.sdd/config.json`:
+
+1. Confirme `docs/architecture/assessment.md` existe e cobre o bounded context.
+2. Se não existir, estiver desatualizado ou o módulo for desconhecido → delegue
+   leitura/execução de **`.claude/skills/mapping/SKILL.md`** (global ou focal).
+3. Registre em `.claude/session-context/decisions.md` se o humano pediu atalho
+   (ex.: teste de fluxo) — isso **não** dispensa `/mapear` na implementação real.
+
+O **`/kickoff` brownfield** (skill) já encadeia `/mapear` na Fase 1B — use quando
+for início de projeto ou repensar arquitetura, não substitua o mapeamento focal
+por feature.
 
 ## Transições de status que você gerencia
 

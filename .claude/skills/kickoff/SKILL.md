@@ -109,7 +109,11 @@ Proponha o harness SDD para o projeto:
 
 ### Fase 1B — Mapeamento as-is
 
-Acione `/mapear` para:
+**Obrigatório:** leia e execute **`.claude/skills/mapping/SKILL.md`** por completo
+(Comando `/mapear`). Não substitua por grep ad hoc — a skill define entrevista,
+gap analysis e saídas (`assessment.md`, ADRs, `## Contexto do módulo`).
+
+Com a skill em execução:
 
 1. Ler código e inferir stack, arquitetura, bounded contexts implícitos.
 2. Avaliar maturidade nos 5 eixos (baixo / médio / alto).

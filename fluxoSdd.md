@@ -82,8 +82,6 @@ Exemplo de referência: `specs/features/000-exemplo-sdd/`.
 | `.claude/session-context/` | Memória curta — feature ativa, próximos passos |
 | `.claude/settings.json` | Permissões e registro de hooks |
 
-> Espelho Cursor: `.agents/skills/` contém as mesmas skills SDD para o Cursor.
-
 ---
 
 ## Harness + SDD (visão integrada)

@@ -1,6 +1,6 @@
 ---
 name: sdd-init
-description: Inicia uma nova feature no fluxo SDD — cria a pasta specs/features/<id>/ com requirements.md (EARS), design.md, tasks.md e status.json. Use quando o usuário pedir "nova feature", "especifique X" ou "criar spec".
+description: Inicia uma nova feature no fluxo SDD — cria a pasta specs/features/<id>/ com requirements.md (EARS), design.md, tasks.md e status.json. Em brownfield, exige /mapear (global ou focal) antes. Use quando o usuário pedir "nova feature", "especifique X" ou "criar spec".
 ---
 
 # Skill: sdd-init
@@ -15,16 +15,28 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 
 ## Passos
 
+0. **Brownfield — `/mapear` primeiro (BLOQUEANTE para código protegido)**
+
+   Se a feature vai alterar `cotacoes/`, `efectiApi/` ou `deploy/`:
+
+   - Leia `docs/architecture/assessment.md`. Se **ausente** ou o módulo alvo **não**
+     estiver descrito → leia e execute **`.claude/skills/mapping/SKILL.md`**
+     (repositório inteiro ou sub-área focal).
+   - Anote no `design.md` (seção **Contexto as-is**) os achados relevantes + link
+     ao assessment.
+   - Se o humano pediu atalho sem mapear, **pare** e registre: specs sem as-is
+     aumentam risco de regressão — ofereça `/mapear` focal antes de continuar.
+
 1. **Determine o ID** no formato `NNN-kebab-case`. Pegue o próximo número
    olhando `specs/features/` (ex: se existe `001-...`, use `002-...`).
 
-2. **Adicione ao `specs/BACKLOG.md`** uma linha com status `pending`.
-   - Se o BACKLOG já estiver agrupado por `## Contexto:` (via `/roadmap`), insira no contexto correto.
-   - Se estiver flat ou inexistente, adicione ao final.
+2. **Adicione ao `specs/BACKLOG.md`** uma linha com status `pending` (ou use `/roadmap`
+   se o backlog ainda não estiver organizado por bounded context).
 
 3. **Crie a pasta** `specs/features/<id>/` com os 4 arquivos abaixo.
 
-4. **Leia `CLAUDE.md`** para usar termos reais do domínio e stack.
+4. **Leia `CLAUDE.md`** para usar termos reais do domínio (Effecti API,
+   Claude Vision, PncpExtractorService, cruzamento, etc.).
 
 5. **Delegue ao subagente `spec_author`** para preencher os detalhes (ou
    preencha você mesmo seguindo o template).
@@ -57,6 +69,12 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 
 ```markdown
 # Design — <id> <título>
+
+## Contexto as-is
+> Preencher após `/mapear`. Referência: `docs/architecture/assessment.md`
+- Bounded context:
+- Módulos/arquivos existentes:
+- Acoplamentos e riscos de regressão:
 
 ## Decisões técnicas
 - <decisão> (alternativas consideradas: <...>)
@@ -98,8 +116,6 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 ```
 
 > Após o `spec_author` preencher tudo, atualize `status` para `spec_ready`.
-
-Referência: `specs/features/000-exemplo-sdd/`.
 
 ## Saída
 

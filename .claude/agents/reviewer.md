@@ -35,6 +35,8 @@ Monte a matriz obrigatória:
 
 ### 2. Escopo e qualidade estática
 
+- [ ] `progress/impl_<id>.md` contém **`## Contexto do módulo`** (brownfield /
+  paths protegidos) salvo skip registrado em `.claude/session-context/decisions.md`.
 - [ ] Mudanças coesas e **dentro** do escopo do `design.md` (sem features extras).
 - [ ] Sem código morto introduzido.
 - [ ] Arquivos criados/alterados batem com o File Structure Plan do `design.md`.

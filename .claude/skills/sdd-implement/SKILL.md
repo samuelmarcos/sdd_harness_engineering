@@ -19,15 +19,22 @@ Executa a implementação de uma feature **com spec aprovada**.
 ## Passos
 
 1. **Confirme a feature ativa** em `.claude/session-context/active-feature`.
-2. **Leia** `requirements.md`, `design.md`, `tasks.md` e `CLAUDE.md`.
-3. **Transicione** `status.json` para `in_progress` (atualize `updated`).
-4. **Crie** `progress/impl_<id>.md` (tabela Task ↔ R\<n\> ↔ arquivos ↔ testes).
-5. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
+2. **Leia** `requirements.md`, `design.md`, `tasks.md`, `CLAUDE.md` e
+   `docs/architecture/assessment.md`.
+3. **`/mapear` focal (se faltou no sdd-init):** leia e execute
+   **`.claude/skills/mapping/SKILL.md`** nos arquivos que as tasks vão tocar +
+   vizinhos imediatos. Registre em `progress/impl_<id>.md` → seção
+   **`## Contexto do módulo`** (convenções, acoplamentos, efeitos colaterais).
+4. **Transicione** `status.json` para `in_progress` (atualize `updated`).
+5. **Crie** `progress/impl_<id>.md` com:
+   - `## Contexto do módulo` (do `/mapear` focal)
+   - tabela Task ↔ R\<n\> ↔ arquivos ↔ testes
+6. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
    - Para cada task: implemente o mínimo, marque `[x]`, registre no log.
    - Escreva testes em `tests/` com `// @covers R<n>`.
-6. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
+7. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
    lints introduzidos.
-7. **Atualize** `progress/current.md` com o andamento.
+8. **Atualize** `progress/current.md` com o andamento.
 
 ## Disciplina
 

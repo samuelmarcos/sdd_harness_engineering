@@ -28,17 +28,20 @@ Exemplo:
 ```markdown
 ## Requisitos
 
-- **R1** (event): QUANDO o usuário envia um formulário válido, o sistema DEVE
-  persistir os dados e retornar confirmação.
-- **R2** (unwanted): SE a validação falhar, ENTÃO o sistema DEVE retornar erros
-  por campo sem persistir dados.
-- **R3** (ubiquitous): O sistema DEVE normalizar emails para lowercase.
+- **R1** (event): QUANDO o usuário envia um PDF de edital, o sistema DEVE
+  extrair a lista de itens com descrição, quantidade e unidade.
+- **R2** (unwanted): SE a extração via Claude Vision falhar, ENTÃO o sistema
+  DEVE acionar o fallback de parsers heurísticos e registrar o erro.
+- **R3** (ubiquitous): O sistema DEVE normalizar valores decimais com ponto.
 ```
 
 ### 2. `design.md` — Decisões técnicas + File Structure Plan
 
 Inclua:
-- **Contexto** e restrições (leia `CLAUDE.md` para stack e quirks).
+- **`## Contexto as-is`** — achados de `docs/architecture/assessment.md` e, se
+  o módulo não estiver coberto, **pare** e exija `.claude/skills/mapping/SKILL.md`
+  (focal) antes de specificar.
+- **Contexto** e restrições (leia `CLAUDE.md` para quirks do domínio).
 - **Decisões técnicas** (com alternativas consideradas).
 - **File Structure Plan** — quais arquivos serão criados/alterados.
 - **Mapeamento R\<n\> → arquivos/módulos** afetados.
@@ -51,6 +54,16 @@ Cada task:
 - Referencia o(s) requisito(s) que satisfaz: `(R1, R3)`.
 - Começa desmarcada `[ ]`.
 
+Exemplo:
+```markdown
+## Tasks
+
+- [ ] T1 — Adicionar endpoint POST /ocr/upload (R1)
+- [ ] T2 — Implementar fallback heurístico no OcrService (R2)
+- [ ] T3 — Teste: extração de PDF com 50 itens (R1)
+- [ ] T4 — Teste: falha de Vision aciona fallback (R2)
+```
+
 ## Também crie/atualize `status.json`
 
 ```json
@@ -58,18 +71,16 @@ Cada task:
   "id": "001-user-auth",
   "title": "Autenticação de usuário",
   "status": "spec_ready",
-  "created": "2026-06-22",
-  "updated": "2026-06-22"
+  "created": "2026-05-28",
+  "updated": "2026-05-28"
 }
 ```
 
 ## Regras
 
-- ❌ NUNCA edite `src/` nem testes de produção.
+- ❌ NUNCA edite `src/`, `cotacoes/`, `efectiApi/` ou testes.
 - ✅ Todo `R<n>` deve ter ≥1 task e ser testável.
 - ✅ Ao terminar, defina `status` = `spec_ready` e **avise que aguarda
   aprovação humana**.
 - ✅ Seja específico ao domínio: cite endpoints, serviços e quirks reais do
-  `CLAUDE.md`.
-
-Veja `specs/features/000-exemplo-sdd/` como referência de formato.
+  `CLAUDE.md` (ex: `PncpExtractorService`, pipeline Claude Vision, Effecti API).
