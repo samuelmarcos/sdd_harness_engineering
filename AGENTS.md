@@ -1,0 +1,144 @@
+# AGENTS.md — Ponto de entrada do Harness (Orquestração SDD)
+
+> Este arquivo é o **ponto de entrada do harness**. Define COMO os agentes
+> trabalham (o processo), enquanto o `CLAUDE.md` define O QUE é o projeto
+> (contexto técnico e quirks). Leia ambos no início de cada sessão.
+
+---
+
+## Filosofia: Harness (o veículo) + SDD (o processo)
+
+Este projeto opera sob **Spec-Driven Development (SDD)**: nenhum código de
+feature é escrito sem uma **especificação aprovada por humano**. O "harness"
+é a infraestrutura de agentes, memória e disciplina que garante esse processo.
+
+```
+Harness (veículo)                      SDD (processo)
+─────────────────                      ──────────────
+.claude/agents/     → subagentes       specs/features/*/requirements.md
+.claude/skills/     → instruções       specs/features/*/design.md
+.claude/knowledge/  → memória longa    specs/features/*/tasks.md
+.claude/hooks/      → disciplina       specs/features/*/status.json
+session-context/    → memória curta    progress/
+```
+
+**Skills canônicas** (tudo em `.claude/skills/`):
+
+| Skill | Comando | Quando |
+|-------|---------|--------|
+| Integrações | `/integracoes` | Ferramentas do time (MCP read-first) — antes ou depois do kickoff |
+| Kickoff | `/kickoff` | Primeira sessão ou repensar arquitetura |
+| Mapeamento | `/mapear` | Brownfield — assessment ou módulo desconhecido |
+| Clarificar | `/clarificar` | Decisão arquitetural ramificada → ADR |
+| Roadmap | `/roadmap` | Organizar `specs/BACKLOG.md` por bounded context |
+| SDD init | `sdd-init` | Nova feature → pasta em `specs/features/` |
+| SDD implement | `sdd-implement` | Spec aprovada → código |
+| SDD review | `sdd-review` | Pós-implementação → QA + reviewer |
+
+> **`/mapear`** — skill `.claude/skills/mapping/SKILL.md`. Leia e execute por
+> completo; não substitua por grep ad hoc.
+
+**Prelude do projeto** (uma vez ou após mudança grande):
+
+```
+/integracoes (opcional) → /kickoff → /mapear (brownfield) → /clarificar (se ramificar) → /roadmap
+```
+
+---
+
+## Os 5 Subagentes (em `.claude/agents/`)
+
+| Agente | Papel | Pode editar código? |
+|---|---|---|
+| `leader` | Orquestra o fluxo, mantém `session-context/`, decide próximo passo | ❌ Não |
+| `spec_author` | Escreve `requirements.md`, `design.md`, `tasks.md` | ❌ Só specs |
+| `implementer` | Implementa seguindo `tasks.md`, marca `[x]` | ✅ Sim |
+| `quality-assurance` | Valida funcionamento, paridade, design e arquitetura | ❌ Só relata |
+| `reviewer` | Verifica rastreabilidade R\<n\> ↔ task ↔ teste e escopo | ❌ Só relata |
+
+> O **leader** nunca edita paths protegidos (`.sdd/config.json`). Na **revisão**,
+> `sdd-review` coordena QA + reviewer — feature só fecha com **ambos** ✅.
+
+**Pré-requisitos brownfield (código existente):**
+
+- **`leader`** — confirma `docs/architecture/assessment.md` antes de `sdd-init` /
+  `sdd-implement`; delega `/mapear` se módulo não coberto.
+- **`spec_author`** — preenche `design.md` → **`## Contexto as-is`**; se decisão
+  estrutural ambígua → `/clarificar`.
+- **`implementer`** — exige `progress/impl_<id>.md` → **`## Contexto do módulo`**
+  (saída do `/mapear` focal) antes de editar paths protegidos.
+
+---
+
+## Ciclo de vida de uma feature (SDD)
+
+```
+┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
+│ 0.Mapeamento│ → │1.Descoberta  │ → │2.Spec    │ → │3.Aprovação   │ → │4.Impl    │ → │5.Rev │ → 6.Done
+│  /mapear    │   │  BACKLOG.md  │   │spec_author│   │   HUMANO ✋  │   │implementer│   │sdd-review│   │leader│
+│  (se BF)    │   │  pending     │   │ spec_ready│   │              │   │in_progress│   │ QA+review│   │ done │
+└─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────────┘   └──────────┘   └──────┘
+```
+
+| Fase | Artefato | Quem executa | Transição |
+|---|---|---|---|
+| 0. Mapeamento | `assessment.md`, ADRs | `/mapear` (brownfield) | — |
+| 1. Descoberta | `specs/BACKLOG.md` | `/roadmap`, humano | → `pending` |
+| 2. Especificação | requirements, design, tasks | `sdd-init` → `spec_author` | → `spec_ready` |
+| 3. Aprovação | leitura + "aprovado" | **Humano** | libera impl |
+| 4. Implementação | tasks `[x]`, código, `progress/` | `sdd-implement` | → `in_progress` |
+| 5. Revisão | relatório consolidado | `sdd-review` | QA ✅ + reviewer ✅ |
+| 6. Fechamento | `status.json` = `done` | `leader` | → `done` |
+
+---
+
+## Regra de ouro: SEM SPEC APROVADA, SEM CÓDIGO
+
+O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em paths de
+`.sdd/config.json` quando a feature ativa não está em `spec_ready` ou `in_progress`.
+
+**Sequência típica:**
+
+1. Prelude: `/integracoes` (opc.) → `/kickoff` → `/mapear` → `/roadmap`
+2. Por feature: `sdd-init` → humano **aprovado** → `sdd-implement` → `sdd-review`
+3. Decisão ramificada mid-spec: `/clarificar` → ADR → retomar spec
+
+---
+
+## Rastreabilidade R\<n\>
+
+- **`reviewer`** falha se algum `R<n>` não tiver task **e** teste.
+- **`quality-assurance`** falha se build/lint/test quebrarem, houver regressão
+  não documentada, ou violação de `design.md` / `assessment.md`.
+
+---
+
+## Comandos naturais → ações
+
+| Comando do humano | Ação |
+|---|---|
+| "Conectar ferramentas" | `/integracoes` |
+| "Kickoff" / "Iniciar projeto" | `/kickoff` → `/roadmap` |
+| "Mapeie X" | `/mapear` focal → assessment + contexto do módulo |
+| "Preciso decidir arquitetura" | `/clarificar` → ADR |
+| "Nova feature: X" | `/mapear` focal (se BF) → `sdd-init` |
+| "Aprovado" | libera `sdd-implement` |
+| "Implemente a feature NNN" | `sdd-implement` |
+| "Revise a feature NNN" | `sdd-review` (QA + reviewer) |
+| "Status do projeto" | `leader` lê `status.json` + BACKLOG |
+
+---
+
+## Convenções de arquivo
+
+- IDs: `NNN-kebab-case`
+- `design.md`: **`## Contexto as-is`** (brownfield)
+- `progress/impl_<id>.md`: **`## Contexto do módulo`** (pós-`/mapear` focal)
+- Insumos externos: `docs/integrations/inventory.md` (via `/integracoes`)
+
+---
+
+## Relação com `CLAUDE.md`
+
+`CLAUDE.md` é a **fonte de verdade técnica**. Subagentes e skills leem antes de
+especificar ou implementar. Guia visual: **`fluxoSdd.md`**. Specs: **`specs/README.md`**.

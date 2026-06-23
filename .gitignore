@@ -1,0 +1,25 @@
+# ── Credenciais e segredos ────────────────────────
+.env
+.env.*
+!.env.example
+
+.mcp.json
+credentials.json
+*.credentials.json
+service-account*.json
+*-key.json
+
+# ── Dependências e build ──────────────────────────
+node_modules/
+dist/
+*.js.map
+
+# ── Harness / SDD (memória efêmera) ───────────────
+CLAUDE.local.md
+.claude/session-context/*
+!.claude/session-context/.gitkeep
+progress/current.md
+
+# ── OS / IDE ──────────────────────────────────────
+.DS_Store
+Thumbs.db

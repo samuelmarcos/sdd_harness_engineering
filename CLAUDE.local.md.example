@@ -1,0 +1,37 @@
+# CLAUDE.local.md — Configurações pessoais (NÃO versionado)
+
+> Copie este arquivo para `CLAUDE.local.md` (ignorado pelo git). Use para
+> preferências pessoais, caminhos locais e overrides que não devem ser
+> compartilhados com o time.
+
+---
+
+## Preferências pessoais
+
+- Idioma de respostas: **pt-BR**
+- Nível de verbosidade: conciso, foco em ação
+- Confirmar antes de: push para remote, migrations destrutivas, deploy
+
+---
+
+## Caminhos locais (esta máquina)
+
+```
+WORKSPACE = /caminho/para/seu/projeto
+```
+
+---
+
+## Overrides de ambiente local
+
+```
+# Exemplo — preencher com valores da sua máquina
+# API_KEY=...
+# DATABASE_URL=...
+```
+
+---
+
+## Notas de sessão (rascunho pessoal)
+
+- _Adicione lembretes que só valem para você aqui._
