@@ -57,4 +57,4 @@ E atualize `progress/current.md` com o andamento.
 
 - Todas as tasks `[x]`.
 - Testes passando.
-- Avise o `leader` que a feature está pronta para o `reviewer`.
+- Avise o `leader` que a feature está pronta para `sdd-review` (QA + reviewer).

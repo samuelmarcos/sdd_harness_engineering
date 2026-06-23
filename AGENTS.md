@@ -24,17 +24,21 @@ session-context/    → memória curta    progress/
 
 ---
 
-## Os 4 Subagentes (em `.claude/agents/`)
+## Os 5 Subagentes (em `.claude/agents/`)
 
 | Agente | Papel | Pode editar código? |
 |---|---|---|
 | `leader` | Orquestra o fluxo, mantém `session-context/`, decide próximo passo | ❌ Não |
 | `spec_author` | Escreve `requirements.md`, `design.md`, `tasks.md` | ❌ Só specs |
 | `implementer` | Implementa seguindo `tasks.md`, marca `[x]` | ✅ Sim |
-| `reviewer` | Verifica rastreabilidade R\<n\> ↔ testes, qualidade | ❌ Só relata |
+| `quality-assurance` | Valida funcionamento, paridade, design e arquitetura | ❌ Só relata |
+| `reviewer` | Verifica rastreabilidade R\<n\> ↔ task ↔ teste e escopo | ❌ Só relata |
 
 > O **leader** nunca edita `src/`. Ele delega ao `implementer`. Isso mantém
 > separação entre planejamento e execução.
+
+> Na **fase de revisão**, a skill `sdd-review` coordena `quality-assurance` e
+> `reviewer`. A feature só fecha quando **ambos** aprovam.
 
 ---
 
@@ -43,8 +47,8 @@ session-context/    → memória curta    progress/
 ```
 ┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
 │ 1.Descoberta│ → │2.Especificação│ → │3.Aprovação│ → │4.Implementação│ → │5.Revisão │ → │6.Done│
-│  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ reviewer │   │leader│
-│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │          │   │ done │
+│  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ sdd-review│   │leader│
+│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │ QA+review│   │ done │
 └─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────┘   └──────┘
 ```
 
@@ -70,7 +74,7 @@ Para iniciar trabalho:
 2. Rode a skill `sdd-init` (cria a pasta da feature + specs).
 3. **Humano aprova** lendo os 3 arquivos.
 4. Rode a skill `sdd-implement`.
-5. Rode a skill `sdd-review`.
+5. Rode a skill `sdd-review` (aciona `quality-assurance` + `reviewer`).
 
 ---
 
@@ -80,7 +84,9 @@ Cada requisito em `requirements.md` recebe um ID `R1`, `R2`, ... Cada task em
 `tasks.md` referencia o(s) requisito(s) que satisfaz (`R1`, `R3`). Cada teste
 em `tests/` referencia o requisito que verifica via comentário `// @covers R1`.
 
-O `reviewer` falha a revisão se algum `R<n>` não tiver task **e** teste.
+O `reviewer` (via `sdd-review`) falha a revisão se algum `R<n>` não tiver task **e** teste.
+O `quality-assurance` falha se build/lint/test quebrarem, houver regressão de resultado
+não documentada na spec, ou violação de `design.md` / `docs/architecture/assessment.md`.
 
 ---
 
@@ -92,7 +98,7 @@ O `reviewer` falha a revisão se algum `R<n>` não tiver task **e** teste.
 | "Especifique a feature 001" | `spec_author` escreve os 3 arquivos |
 | "Aprovado" / "Pode implementar" | libera implementação |
 | "Implemente a feature 001" | `sdd-implement` (requer aprovação) |
-| "Revise a feature 001" | `sdd-review` |
+| "Revise a feature 001" | `sdd-review` (QA + reviewer) |
 | "Status do projeto" | `leader` lê todos os `status.json` + BACKLOG |
 
 ---

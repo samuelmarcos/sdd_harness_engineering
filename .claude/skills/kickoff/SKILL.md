@@ -98,7 +98,7 @@ Quando um eixo abrir decisão ramificada → rode `/clarificar`.
 
 Proponha o harness SDD para o projeto:
 
-- Quais **subagentes** fazem sentido além dos 4 padrão (leader, spec_author, implementer, reviewer)?
+- Quais **subagentes** fazem sentido além dos 5 padrão (leader, spec_author, implementer, quality-assurance, reviewer)?
 - Quais **skills** de domínio instalar (ex.: `nestjs-best-practices`, `saas-standards`)?
 - Quais **hooks** além dos padrões SDD (pre-commit, build-on-save)?
 - Quais **workflows de CI** automatizar?
@@ -185,8 +185,8 @@ Após o kickoff, cada item do backlog segue o **ciclo SDD de 6 fases**:
 ```
 ┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
 │ 1.Descoberta│ → │2.Especificação│ → │3.Aprovação│ → │4.Implementação│ → │5.Revisão │ → │6.Done│
-│  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ reviewer │   │leader│
-│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │          │   │ done │
+│  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ sdd-review│   │leader│
+│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │ QA+review│   │ done │
 └─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────┘   └──────┘
 ```
 
@@ -196,7 +196,7 @@ Após o kickoff, cada item do backlog segue o **ciclo SDD de 6 fases**:
 | 2 | **Especificação** | Criar `requirements.md`, `design.md`, `tasks.md` | `/sdd-init` → `spec_author` | `spec_ready` |
 | 3 | **Aprovação** | Humano lê os 3 arquivos e diz **"aprovado"** | — (gate humano) | libera impl |
 | 4 | **Implementação** | Executar `tasks.md`, marcar `[x]`, registrar em `progress/` | `/sdd-implement` → `implementer` | `in_progress` |
-| 5 | **Revisão** | Auditar rastreabilidade R\<n\> ↔ task ↔ `// @covers R<n>` | `/sdd-review` → `reviewer` | — |
+| 5 | **Revisão** | QA + rastreabilidade via `/sdd-review` | `quality-assurance` + `reviewer` | — |
 | 6 | **Done** | Fechar feature; atualizar BACKLOG | `leader` | `done` |
 
 ### Regra de ouro
@@ -222,7 +222,7 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em `src/` (e paths ext
    → /sdd-implement executa tasks.md
 
 5. Diga: "Revise a feature NNN"
-   → /sdd-review audita rastreabilidade
+   → /sdd-review aciona quality-assurance + reviewer (ambos devem aprovar)
 
 6. Confirme status.json = done e BACKLOG atualizado
 ```
@@ -245,7 +245,8 @@ requirements.md     tasks.md              tests/
     R2 ────────────── T2 (R2) ──────────── // @covers R2
 ```
 
-O `reviewer` **reprova** se qualquer `R<n>` ficar sem task ou sem teste correspondente.
+O `sdd-review` **reprova** se QA ou reviewer falharem — incluindo `R<n>` sem task/teste
+ou regressão de resultado não documentada na spec.
 
 ---
 

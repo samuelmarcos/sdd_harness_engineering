@@ -20,8 +20,8 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em diretórios protegi
 ```
 ┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
 │ 1.Descoberta│ → │2.Especificação│ → │3.Aprovação│ → │4.Implementação│ → │5.Revisão │ → │6.Done│
-│  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ reviewer │   │leader│
-│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │          │   │ done │
+│  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ sdd-review│   │leader│
+│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │ QA+review│   │ done │
 └─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────┘   └──────┘
 ```
 
@@ -35,7 +35,7 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em diretórios protegi
 | 2 | **Especificação** | Skill `sdd-init` cria pasta + spec | `requirements.md`, `design.md`, `tasks.md`, `status.json` | → `spec_ready` |
 | 3 | **Aprovação** | Humano lê os 3 arquivos e diz **"aprovado"** | — | libera implementação |
 | 4 | **Implementação** | Skill `sdd-implement`; tasks viram código | `tasks.md` com `[x]`, código, `progress/impl_*.md` | → `in_progress` |
-| 5 | **Revisão** | Skill `sdd-review`; checa rastreabilidade | relatório | — |
+| 5 | **Revisão** | Skill `sdd-review` — QA + rastreabilidade | relatório consolidado | — |
 | 6 | **Done** | Feature fechada | `status.json` = `done`, BACKLOG atualizado | `done` |
 
 ---
@@ -66,16 +66,17 @@ Exemplo de referência: `specs/features/000-exemplo-sdd/`.
 | `progress/` | Log de implementação (`impl_<id>.md`) |
 | `progress/current.md` | Feature ativa (gitignored) |
 | `tests/` | Testes com `// @covers R<n>` |
+| `docs/architecture/` | Arquitetura desejada — `assessment.md` (lido pelo QA) |
 | `.sdd/config.json` | Paths protegidos + comandos de build/test |
 
 ### Harness — agentes, skills e disciplina (`.claude/`)
 
 | Pasta | Função |
 |-------|--------|
-| `.claude/agents/` | 4 subagentes: `leader`, `spec_author`, `implementer`, `reviewer` |
+| `.claude/agents/` | 5 subagentes: `leader`, `spec_author`, `implementer`, `quality-assurance`, `reviewer` |
 | `.claude/skills/sdd-init/` | Criar pasta da feature + arquivos base |
 | `.claude/skills/sdd-implement/` | Implementar `tasks.md` |
-| `.claude/skills/sdd-review/` | Revisar rastreabilidade |
+| `.claude/skills/sdd-review/` | Coordena QA + reviewer; feature só fecha com ambos ✅ |
 | `.claude/hooks/` | `pre-tool-use.sh` (disciplina) + `session-start.sh` (contexto) |
 | `.claude/knowledge/` | Memória longa — glossário, lições, ADRs |
 | `.claude/session-context/` | Memória curta — feature ativa, próximos passos |
@@ -107,8 +108,8 @@ session-context/    → memória curta    progress/
 4. Revise `requirements.md`, `design.md`, `tasks.md` gerados.
 5. Diga: **"Aprovado"**
 6. Diga: **"Implemente a feature 001"**
-7. Diga: **"Revise a feature 001"**
-8. Confirme `status.json` = `done` e BACKLOG atualizado.
+7. Diga: **"Revise a feature 001"** (skill `sdd-review` aciona QA + reviewer)
+8. Confirme veredito consolidado (QA ✅ + Reviewer ✅), `status.json` = `done` e BACKLOG atualizado.
 
 ---
 

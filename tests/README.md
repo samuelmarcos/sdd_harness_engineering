@@ -13,8 +13,10 @@ it('retorna timestamp em formato ISO', () => {
 });
 ```
 
-O subagente `reviewer` (skill `sdd-review`) varre `tests/` em busca de
-`// @covers R<n>` e **reprova** a feature se algum requisito ficar sem teste.
+O subagente `reviewer` (via skill `sdd-review`) varre `tests/` em busca de
+`// @covers R<n>`. O `quality-assurance` verifica se os testes realmente validam
+o comportamento descrito em `requirements.md`. A feature **reprova** se algum
+requisito ficar sem teste ou se QA detectar regressão.
 
 ## Organização
 
@@ -24,7 +26,7 @@ O subagente `reviewer` (skill `sdd-review`) varre `tests/` em busca de
 
 ## Mapa de cobertura
 
-Mantenha (ou gere via `reviewer`) a matriz no relatório de revisão:
+Mantenha (ou gere via `sdd-review`) a matriz no relatório consolidado:
 
 ```
 | Requisito | Teste(s)            | OK? |

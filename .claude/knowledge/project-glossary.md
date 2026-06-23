@@ -11,5 +11,8 @@
 | **Harness** | Infraestrutura de agentes em `.claude/` (skills, hooks, subagentes). |
 | **SDD** | Spec-Driven Development — spec aprovada antes de código. |
 | **@covers** | Marcador em testes que liga o teste a um requisito R\<n\>. |
+| **Quality-assurance (QA)** | Subagente que valida funcionamento, paridade, design e arquitetura. |
+| **Paridade** | Mesmos resultados que antes da mudança, salvo delta documentado na spec. |
+| **sdd-review** | Skill que coordena QA + reviewer; feature só fecha com ambos ✅. |
 
 <!-- Adicione termos do seu domínio abaixo -->

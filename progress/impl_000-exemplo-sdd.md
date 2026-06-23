@@ -17,4 +17,4 @@ _(preencher após implementação)_
 
 ## Pendências de rastreabilidade
 
-_(o reviewer lista aqui requisitos sem teste)_
+_(o `sdd-review` — QA + reviewer — lista aqui requisitos sem teste ou regressões)_

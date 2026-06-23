@@ -13,7 +13,7 @@ para desenvolvimento assistido por IA.
 | **Harness** | Infraestrutura que disciplina o agente: subagentes, skills, hooks, memória. |
 
 ```
-Humano aprova spec  →  Agente implementa  →  Reviewer valida R1↔teste
+Humano aprova spec  →  Agente implementa  →  sdd-review (QA + reviewer)
         ↑                                              ↓
    Hook bloqueia código sem spec aprovada
 ```
@@ -41,6 +41,7 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 │
 ├── progress/              # Logs de implementação por feature (impl_<id>.md)
 ├── tests/                 # Testes com marcador // @covers R<n>
+├── docs/architecture/     # assessment.md — arquitetura desejada (lido pelo QA)
 └── src/                   # Código de produção (protegido pelo hook SDD)
 ```
 
@@ -52,6 +53,7 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 | `progress/impl_<id>.md` | Registro task ↔ requisito ↔ arquivos ↔ testes |
 | `progress/current.md` | Feature ativa (gitignored — cópia de trabalho) |
 | `tests/` | Prova rastreável de que cada `R<n>` foi implementado |
+| `docs/architecture/assessment.md` | Bounded contexts e restrições — validado pelo QA na revisão |
 | `.sdd/config.json` | Diretórios bloqueados pelo hook e comandos de validação |
 
 ---
@@ -66,7 +68,8 @@ requirements.md     tasks.md              tests/
     R2 ────────────── T2 (R2) ──────────── // @covers R2
 ```
 
-O subagente `reviewer` **reprova** se algum `R<n>` ficar sem task ou sem teste.
+O `sdd-review` coordena **quality-assurance** (funcionamento + paridade + arquitetura)
+e **reviewer** (rastreabilidade R\<n\> ↔ task ↔ teste). A feature só fecha com ambos ✅.
 
 Exemplo de formato: `specs/features/000-exemplo-sdd/`.
 
@@ -91,12 +94,14 @@ são carregados como contexto de projeto no início da sessão.
 ```
 Harness Claude Code (.claude/)          SDD (specs/)              Código
 ─────────────────────────────          ─────────────              ──────
-agents/     → 4 subagentes            features/*/requirements    src/
-skills/     → sdd-init, implement,     features/*/design.md       tests/
-              review                    features/*/tasks.md
-hooks/      → disciplina automática     features/*/status.json     progress/
-knowledge/  → memória longa
-session-context/ → memória curta
+agents/     → 5 subagentes            features/*/requirements    src/
+skills/     → kickoff, mapear,         features/*/design.md       tests/
+              roadmap, sdd-init,        features/*/tasks.md
+              sdd-implement,            features/*/status.json     progress/
+              sdd-review
+hooks/      → disciplina automática    docs/architecture/
+knowledge/  → memória longa              assessment.md
+session-context/ → memória curta         adr/
 ```
 
 ---
@@ -114,22 +119,36 @@ explicitamente (*"atue como leader"*).
 | `leader.md` | Orquestra o fluxo SDD, mantém `session-context/`, atualiza `status.json` e `BACKLOG.md` | ❌ |
 | `spec_author.md` | Escreve `requirements.md`, `design.md`, `tasks.md` em `specs/features/<id>/` | ❌ (só specs) |
 | `implementer.md` | Executa `tasks.md`, marca `[x]`, registra em `progress/`, escreve testes | ✅ |
-| `reviewer.md` | Audita rastreabilidade R\<n\> ↔ task ↔ teste; emite APROVADO / REPROVADO | ❌ |
+| `quality-assurance.md` | Roda build/lint/test, valida paridade, design e `docs/architecture/assessment.md` | ❌ |
+| `reviewer.md` | Audita rastreabilidade R\<n\> ↔ task ↔ teste e escopo | ❌ |
 
 ---
 
-#### `.claude/skills/` — Skills SDD
+#### `.claude/skills/` — Skills
 
-Skills são acionadas por comandos naturais (*"Nova feature: …"*) ou quando o
-agente reconhece a intenção. Cada skill fica em sua própria pasta com `SKILL.md`.
+Skills são acionadas por comandos naturais ou `/nome`. Cada skill fica em sua própria pasta com `SKILL.md`.
 
-| Skill | Pasta | Quando usar |
-|-------|-------|-------------|
-| `sdd-init` | `skills/sdd-init/SKILL.md` | Criar pasta da feature + arquivos base de spec |
-| `sdd-implement` | `skills/sdd-implement/SKILL.md` | Implementar após aprovação humana |
-| `sdd-review` | `skills/sdd-review/SKILL.md` | Revisar rastreabilidade e qualidade |
+**Skills de início de projeto**
 
-Espelho para Cursor: `.agents/skills/` contém as mesmas três skills.
+| Skill | Comando | Quando usar |
+|-------|---------|-------------|
+| `kickoff` | `/kickoff` | Iniciar ou retomar projeto — detecta greenfield/brownfield, conduz Lean Inception ou mapeamento, produz a constituição do projeto |
+| `mapping` | `/mapear` | Mapear codebase existente (brownfield) — stack, arquitetura, bounded contexts, gaps nos 5 eixos, ADRs retroativos |
+| `roadmap` | `/roadmap` | Agrupar features por contexto de domínio e escrever o `specs/BACKLOG.md` organizado |
+
+**Skills do ciclo SDD (por feature)**
+
+| Skill | Comando | Quando usar |
+|-------|---------|-------------|
+| `sdd-init` | `"Nova feature: …"` | Criar spec (`requirements.md`, `design.md`, `tasks.md`) para uma feature do backlog |
+| `sdd-implement` | `"Implemente a feature NNN"` | Executar `tasks.md` após aprovação humana |
+| `sdd-review` | `"Revise a feature NNN"` | Coordena **QA + reviewer**; consolida veredito final |
+
+**Fluxo entre skills:**
+
+```
+/kickoff → /mapear (brownfield) → /roadmap → "Nova feature" → "Implemente" → "Revise"
+```
 
 ---
 
@@ -158,8 +177,8 @@ SDD_ENFORCE=false claude
 
 #### `.claude/knowledge/` — Memória longa
 
-Persiste aprendizados entre sessões. O `leader` e o `reviewer` atualizam ao
-fechar features.
+Persiste aprendizados entre sessões. O `leader`, `quality-assurance` e `reviewer`
+atualizam ao fechar features.
 
 | Arquivo | Função |
 |---------|--------|
@@ -202,6 +221,8 @@ Também exporta `SDD_ENFORCE=true` por padrão.
 
 ### Ciclo de funcionamento
 
+**Fase 1 — Início de projeto** (rode uma vez por projeto)
+
 ```
 1. claude                          → abre sessão na raiz do projeto
         │
@@ -209,33 +230,48 @@ Também exporta `SDD_ENFORCE=true` por padrão.
 2. session-start.sh                → mostra feature ativa + status das features
         │
         ▼
-3. Claude lê AGENTS.md + CLAUDE.md → contexto de processo e domínio
-        │
+3. /kickoff                        → detecta greenfield ou brownfield
+        │   greenfield: Lean Inception (visão, MVP, 5 eixos técnicos)
+        │   brownfield: aciona /mapear → lê código, infere contextos, gap analysis
         ▼
-4. "Nova feature: login com JWT"   → skill sdd-init
-        │                              cria specs/features/001-login-jwt/
+4. /roadmap                        → agrupa features por bounded context
+        │                              escreve specs/BACKLOG.md organizado
         ▼
-5. Revise requirements/design/tasks → diga "Aprovado"
-        │
-        ▼
-6. "Implemente a feature 001"      → skill sdd-implement
-        │                              pre-tool-use.sh libera src/
-        │                              implementer marca tasks [x]
-        ▼
-7. "Revise a feature 001"          → skill sdd-review
-        │                              reviewer valida R<n> ↔ // @covers R<n>
-        ▼
-8. Leader marca done                 → BACKLOG.md + status.json = done
+5. Constituição salva              → CLAUDE.md, .sdd/config.json, assessment.md
 ```
 
-| Você diz | O que acontece |
-|----------|----------------|
-| `Nova feature: autenticação JWT` | Skill **sdd-init** cria spec em `specs/features/001-.../` |
-| _(revise os 3 arquivos)_ | — |
-| `Aprovado` | Libera implementação |
-| `Implemente a feature 001` | Skill **sdd-implement** — código + testes |
-| `Revise a feature 001` | Skill **sdd-review** — matriz R\<n\> ↔ teste |
-| _(reviewer aprova)_ | Leader marca `done` no BACKLOG |
+**Fase 2 — Ciclo SDD por feature** (repete para cada item do backlog)
+
+```
+6. "Nova feature: <título>"        → skill sdd-init
+        │                              cria specs/features/NNN-nome/
+        ▼
+7. Revise requirements/design/tasks → diga "Aprovado"
+        │
+        ▼
+8. "Implemente a feature NNN"      → skill sdd-implement
+        │                              pre-tool-use.sh libera src/
+        │                              implementer executa tasks.md [x]
+        ▼
+9. "Revise a feature NNN"          → skill sdd-review
+        │                              quality-assurance (funcionamento + paridade)
+        │                              reviewer (R<n> ↔ // @covers R<n>)
+        │                              ambos devem aprovar
+        ▼
+10. Leader marca done              → status.json = done, BACKLOG atualizado
+```
+
+| Você diz | Skill acionada | O que acontece |
+|----------|----------------|----------------|
+| `/kickoff` | **kickoff** | Entrevista ou mapeamento → constituição do projeto |
+| `/mapear` | **mapping** | Retrato do codebase → `docs/architecture/assessment.md` |
+| `/roadmap` | **roadmap** | Features agrupadas por contexto → `specs/BACKLOG.md` |
+| `Nova feature: autenticação JWT` | **sdd-init** | Cria spec em `specs/features/001-.../` |
+| _(revise os 3 arquivos)_ | — | — |
+| `Aprovado` | — | Hook libera edição em `src/` |
+| `Implemente a feature 001` | **sdd-implement** | Código + testes |
+| `Revise a feature 001` | **sdd-review** | QA + reviewer; veredito consolidado |
+| _(QA ✅ + Reviewer ✅)_ | **leader** | Marca `done` no BACKLOG |
 
 ---
 
@@ -246,16 +282,18 @@ Também exporta `SDD_ENFORCE=true` por padrão.
 cp -r ./sdd_harness_engineering ./meu-projeto
 cd ./meu-projeto
 
-# 2. Personalizar
-#    - Edite CLAUDE.md (stack, domínio, quirks)
-#    - Copie CLAUDE.local.md.example → CLAUDE.local.md
-#    - Ajuste .sdd/config.json se tiver pastas além de src/
-
-# 3. Abrir Claude Code
+# 2. Abrir Claude Code
 claude
 
-# 4. Primeira feature
-# Diga: "Nova feature: <descrição>"
+# 3. Diga: /kickoff
+#    O Claude detecta greenfield ou brownfield e conduz você pelas fases:
+#    entrevista → mapeamento (se brownfield) → 5 eixos → constituição
+#
+# 4. Diga: /roadmap
+#    Agrupa as features levantadas por contexto e escreve o BACKLOG.md
+#
+# 5. Para cada feature do backlog, diga:
+#    "Nova feature: <título>"  →  revise  →  "Aprovado"  →  "Implemente"  →  "Revise"
 ```
 
 **`.sdd/config.json`** — exemplo com monorepo:

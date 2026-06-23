@@ -38,7 +38,7 @@ specs/
    arquivos e marca `spec_ready`.
 3. **Aprovação humana** — leia os 3 arquivos e diga **"aprovado"**.
 4. **Implementação** — rode `sdd-implement`; o `implementer` segue `tasks.md`.
-5. **Revisão** — rode `sdd-review`; o `reviewer` valida rastreabilidade.
+5. **Revisão** — rode `sdd-review`; `quality-assurance` + `reviewer` validam (ambos devem aprovar).
 6. **Done** — o `leader` marca `done` e registra aprendizados.
 
 ## Rastreabilidade R\<n\>
@@ -46,7 +46,9 @@ specs/
 - `requirements.md` define `R1`, `R2`, ...
 - `tasks.md` referencia os requisitos: `T1 — ... (R1)`.
 - Testes em `tests/` marcam `// @covers R<n>`.
-- O `reviewer` reprova se algum `R<n>` ficar sem task **ou** sem teste.
+- O `reviewer` (via `sdd-review`) reprova se algum `R<n>` ficar sem task **ou** sem teste.
+- O `quality-assurance` reprova se build/lint/test falharem, houver regressão não documentada
+  na spec, ou violação de `design.md` / `docs/architecture/assessment.md`.
 
 ## Convenção de nomes
 

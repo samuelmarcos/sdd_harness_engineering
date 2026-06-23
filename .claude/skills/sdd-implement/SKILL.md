@@ -40,4 +40,4 @@ Executa a implementação de uma feature **com spec aprovada**.
 
 - Todas as tasks `[x]`, testes verdes.
 - Resumo dos arquivos tocados (do `progress/impl_<id>.md`).
-- Recomende rodar a skill `sdd-review`.
+- Recomende rodar a skill `sdd-review` (aciona `quality-assurance` + `reviewer`).

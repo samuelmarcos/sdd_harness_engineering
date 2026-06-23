@@ -19,8 +19,8 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
 3. **Delegar** ao subagente correto:
    - Falta spec → `spec_author`
    - Spec aprovada → `implementer`
-   - Implementação concluída → `reviewer`
-   - Revisão OK → você marca `status.json` = `done`
+   - Implementação concluída → skill `sdd-review` (coordena `quality-assurance` + `reviewer`)
+   - Revisão OK (QA ✅ + Reviewer ✅) → você marca `status.json` = `done`
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
    - `progress.md` — plano vivo da sessão
    - `decisions.md` — decisões tomadas
@@ -52,7 +52,7 @@ Você **nunca** transiciona de `spec_ready` para implementação sem o humano di
 ```
 pending      → (spec_author cria specs) → spec_ready
 spec_ready   → (humano aprova + implementer inicia) → in_progress
-in_progress  → (reviewer aprova) → done
+in_progress  → (sdd-review: QA ✅ + reviewer ✅) → done
 ```
 
 ## Formato de saída
