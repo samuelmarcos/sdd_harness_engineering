@@ -1,11 +1,17 @@
 ---
 name: sdd-review
-description: Revisa a implementação de uma feature contra sua spec — rastreabilidade R<n> ↔ task ↔ teste, qualidade e regressões. Use quando o usuário pedir "revise a feature X" ou após a implementação concluir.
+description: Coordena a revisão completa de uma feature — aciona quality-assurance (funcionamento + arquitetura) e reviewer (rastreabilidade + regressões). Feature só fecha com ambos aprovados. Use quando o usuário pedir "revise a feature X" ou após a implementação concluir.
 ---
 
 # Skill: sdd-review
 
-Audita uma feature implementada e emite veredito (APROVADO / REPROVADO).
+Coordena a revisão completa de uma feature implementada. A revisão tem **dois agentes**
+com responsabilidades distintas — ambos precisam aprovar para a feature fechar.
+
+| Agente | Foco |
+|--------|------|
+| `quality-assurance` | Funcionamento real (testes rodando) + conformidade arquitetural |
+| `reviewer` | Rastreabilidade R\<n\> ↔ task ↔ teste + escopo + regressões |
 
 ## Quando usar
 
@@ -14,33 +20,40 @@ Audita uma feature implementada e emite veredito (APROVADO / REPROVADO).
 
 ## Passos
 
-1. **Leia** `requirements.md`, `tasks.md`, `progress/impl_<id>.md` e o código.
-2. **Delegue ao subagente `reviewer`** (ou execute):
-   - Monte a **matriz de rastreabilidade** R\<n\> ↔ Task ↔ Teste ↔ Código.
-   - Verifique que toda task referenciada está `[x]`.
-   - Verifique que todo `R<n>` tem teste `// @covers R<n>`.
-3. **Rode os testes** de verdade (comando em `.sdd/config.json`) e reporte a saída.
-4. **Cheque regressões**: nenhuma feature `done` quebrada; quirks do
-   `CLAUDE.md` respeitados.
-5. **Emita o veredito.**
+1. **Leia** `requirements.md`, `tasks.md`, `progress/impl_<id>.md`, `design.md` e o código.
 
-## Matriz (obrigatória no relatório)
+2. **Acione o agente `quality-assurance`**:
+   - Roda build, lint e testes e reporta saída real.
+   - Verifica conformidade com `design.md` (decisões técnicas, camadas, naming).
+   - Verifica conformidade com `docs/architecture/assessment.md` (bounded contexts, restrições).
+
+3. **Acione o agente `reviewer`**:
+   - Monta a matriz de rastreabilidade R\<n\> ↔ Task ↔ Teste ↔ Código.
+   - Verifica escopo (sem extras além do `design.md`), código morto e regressões.
+
+4. **Consolide os dois relatórios** e emita o veredito final.
+
+## Matriz de rastreabilidade (obrigatória)
 
 ```markdown
-| Requisito | Task(s) | Teste(s) | Código | OK? |
-|-----------|---------|----------|--------|-----|
-| R1 | T1 | tests/... | src/... | ✅ |
-| R2 | T2 | (FALTANDO) | src/... | ❌ |
+| Requisito | Task(s) | Teste(s)   | Código  | OK? |
+|-----------|---------|------------|---------|-----|
+| R1        | T1      | tests/...  | src/... | ✅  |
+| R2        | T2      | (FALTANDO) | src/... | ❌  |
 ```
 
-## Veredito
+## Veredito final
 
-- ✅ **APROVADO** → instrua o `leader` a marcar `status.json` = `done`,
-  atualizar `BACKLOG.md` e registrar aprendizados em
+A feature só recebe **APROVADO** se **ambos** os agentes aprovarem.
+
+- ✅ **APROVADO** (QA ✅ + Reviewer ✅) → instrua o `leader` a marcar
+  `status.json = done`, atualizar `BACKLOG.md` e registrar aprendizados em
   `.claude/knowledge/learned-lessons.md`.
-- ❌ **REPROVADO** → liste o que falta (por `R<n>`) e devolva ao `implementer`.
+- ❌ **REPROVADO** → consolide as falhas dos dois relatórios por origem
+  (QA / Rastreabilidade) e devolva ao `implementer`. Se a causa for spec incorreta,
+  reencaminhe ao `spec_author`.
 
 ## Regras
 
-- Não edite código nem status — apenas relate.
-- Evidências concretas (arquivo:linha).
+- Não edite código nem status — apenas coordene e relate.
+- Evidências concretas (arquivo:linha) em cada item reprovado.

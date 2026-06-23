@@ -19,6 +19,8 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
    olhando `specs/features/` (ex: se existe `001-...`, use `002-...`).
 
 2. **Adicione ao `specs/BACKLOG.md`** uma linha com status `pending`.
+   - Se o BACKLOG já estiver agrupado por `## Contexto:` (via `/roadmap`), insira no contexto correto.
+   - Se estiver flat ou inexistente, adicione ao final.
 
 3. **Crie a pasta** `specs/features/<id>/` com os 4 arquivos abaixo.
 
