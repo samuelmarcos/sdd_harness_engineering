@@ -41,6 +41,8 @@ _(nenhuma)_
 
 ## Como adicionar uma feature
 
-1. Escolha o próximo ID (`001`, `002`, ...).
-2. Adicione uma linha na seção **Pendentes**.
-3. No Claude Code, diga: **"Nova feature: \<descrição\>"** (skill `sdd-init`).
+1. Organize o backlog: **`/roadmap`** (recomendado) ou linha manual em **Pendentes**.
+2. Opcional: **`/integracoes`** se specs precisarem de dados reais de ferramentas.
+3. No Claude Code: **"Nova feature: \<descrição\>"** (skill `sdd-init`).
+4. Brownfield: confirme **`## Contexto as-is`** no `design.md` (pós-`/mapear`).
+5. Decisão ambígua: **`/clarificar`** antes de aprovar a spec.

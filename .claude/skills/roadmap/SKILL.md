@@ -29,6 +29,7 @@ Leia todas as fontes disponíveis **sem pedir nada ainda**:
 |-------|---------------|
 | `specs/BACKLOG.md` | Features já listadas (se existir) |
 | `docs/architecture/assessment.md` | Gaps, dívidas e riscos mapeados pelo `/mapear` |
+| `docs/integrations/inventory.md` | Ferramentas e insumos do `/integracoes` (issues, CI, infra) |
 | `.claude/session-context/` | Decisões e próximos passos da sessão corrente |
 | `specs/features/*/status.json` | Features já em andamento (não duplicar) |
 | `CLAUDE.md` | Domínio, stack e contextos já conhecidos |

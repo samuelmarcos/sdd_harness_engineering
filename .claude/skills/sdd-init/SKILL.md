@@ -17,7 +17,7 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 
 0. **Brownfield — `/mapear` primeiro (BLOQUEANTE para código protegido)**
 
-   Se a feature vai alterar `cotacoes/`, `efectiApi/` ou `deploy/`:
+   Se a feature vai alterar paths em **`.sdd/config.json`** (padrão: `src/`):
 
    - Leia `docs/architecture/assessment.md`. Se **ausente** ou o módulo alvo **não**
      estiver descrito → leia e execute **`.claude/skills/mapping/SKILL.md`**
@@ -35,16 +35,19 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 
 3. **Crie a pasta** `specs/features/<id>/` com os 4 arquivos abaixo.
 
-4. **Leia `CLAUDE.md`** para usar termos reais do domínio (Effecti API,
-   Claude Vision, PncpExtractorService, cruzamento, etc.).
+4. **Leia** `CLAUDE.md`, `docs/architecture/assessment.md` e, se existir,
+   `docs/integrations/inventory.md` (insumos de `/integracoes`).
 
-5. **Delegue ao subagente `spec_author`** para preencher os detalhes (ou
+5. Se **`design.md` exigir decisão arquitetural ramificada** ainda em aberto →
+   **pare** e rode **`/clarificar`** antes de marcar `spec_ready`.
+
+6. **Delegue ao subagente `spec_author`** para preencher os detalhes (ou
    preencha você mesmo seguindo o template).
 
-6. **Defina a feature ativa**: escreva o ID em
+7. **Defina a feature ativa**: escreva o ID em
    `.claude/session-context/active-feature`.
 
-7. **Pare e peça aprovação humana** — não implemente nada ainda.
+8. **Pare e peça aprovação humana** — não implemente nada ainda.
 
 ## Template — `requirements.md`
 

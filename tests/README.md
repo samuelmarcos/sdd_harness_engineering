@@ -14,9 +14,12 @@ it('retorna timestamp em formato ISO', () => {
 ```
 
 O subagente `reviewer` (via skill `sdd-review`) varre `tests/` em busca de
-`// @covers R<n>`. O `quality-assurance` verifica se os testes realmente validam
-o comportamento descrito em `requirements.md`. A feature **reprova** se algum
-requisito ficar sem teste ou se QA detectar regressão.
+`// @covers R<n>`. O `quality-assurance` valida comportamento real vs `requirements.md`.
+A feature **reprova** se algum requisito ficar sem teste, se QA falhar, ou se
+houver regressão não documentada na spec.
+
+Insumos de `/integracoes` e decisões de `/clarificar` (ADRs) podem exigir testes
+adicionais — registre o `@covers` correspondente.
 
 ## Organização
 

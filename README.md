@@ -42,6 +42,7 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 ├── progress/              # Logs de implementação por feature (impl_<id>.md)
 ├── tests/                 # Testes com marcador // @covers R<n>
 ├── docs/architecture/     # assessment.md — arquitetura desejada (lido pelo QA)
+├── docs/integrations/     # inventory.md — ferramentas conectadas via /integracoes
 └── src/                   # Código de produção (protegido pelo hook SDD)
 ```
 
@@ -54,6 +55,7 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 | `progress/current.md` | Feature ativa (gitignored — cópia de trabalho) |
 | `tests/` | Prova rastreável de que cada `R<n>` foi implementado |
 | `docs/architecture/assessment.md` | Bounded contexts e restrições — validado pelo QA na revisão |
+| `docs/integrations/inventory.md` | Ferramentas do time e insumos read-first — preenchido por `/integracoes` |
 | `.sdd/config.json` | Diretórios bloqueados pelo hook e comandos de validação |
 
 ---
@@ -72,6 +74,133 @@ O `sdd-review` coordena **quality-assurance** (funcionamento + paridade + arquit
 e **reviewer** (rastreabilidade R\<n\> ↔ task ↔ teste). A feature só fecha com ambos ✅.
 
 Exemplo de formato: `specs/features/000-exemplo-sdd/`.
+
+---
+
+## Skill kickoff (`/kickoff`)
+
+Ponto de entrada do projeto no boilerplate SDD. **Não implementa código** — conduz uma
+entrevista estruturada, define a **constituição técnica** do repositório e prepara o
+terreno para o ciclo SDD feature a feature.
+
+Acione com **`/kickoff`** ao iniciar um projeto do zero (greenfield), alinhar código
+existente (brownfield) ou retomar a configuração do harness.
+
+### Fluxograma
+
+```mermaid
+flowchart TD
+    A["/kickoff"] --> B["Fase 0: detectar modo"]
+    B --> C["Fase 0.5: oferta /integracoes"]
+    C --> D{Modo?}
+    D -->|Greenfield| E["Entrevista Lean Inception"]
+    D -->|Brownfield| F["/mapear via skill mapping"]
+    E --> G["Kickoff técnico — 5 eixos"]
+    F --> H["Gap analysis em assessment.md"]
+    H --> G
+    G --> I["Camada agêntica"]
+    I --> J["Resumo + confirmação humana"]
+    J --> K["Gera constituição"]
+    K --> L["/roadmap → BACKLOG.md"]
+    L --> M["Ciclo SDD por feature"]
+```
+
+### Fase 0 — Detectar o modo
+
+O agente inspeciona manifests (`package.json`, `pyproject.toml`, …), `src/`, histórico
+git e docs existentes. Depois confirma com você:
+
+| Modo | Quando |
+|------|--------|
+| **Greenfield** | Repo vazio ou só boilerplate |
+| **Brownfield** | Já existe produto/código |
+| **Híbrido** | Base existe, mas arquitetura será repensada |
+
+Também lê `README.md` e `CLAUDE.md` para alinhar com a esteira SDD do template.
+
+### Fase 0.5 — Integrações (opcional)
+
+Oferece conectar ferramentas via **`/integracoes`** (MCPs, hospedagem, etc.):
+
+- **Antes** — insumos reais para a constituição (recomendado)
+- **Depois** — vira item do roadmap
+- O kickoff **não levanta ferramentas** — isso é trabalho exclusivo de `/integracoes`
+
+### Rota A — Greenfield (do zero)
+
+**1. Lean Inception (produto)** — entrevista em lotes curtos (máx. 4 perguntas):
+
+- **Visão** — problema, usuário, sucesso em 6–12 meses
+- **MVP** — mínimo para validar, prazo, referências
+- **Restrições** — compliance, SLA, o que fica fora do escopo
+
+**2. Kickoff técnico (5 eixos)** — propõe 2–3 opções com trade-offs por eixo:
+
+| Eixo | Exemplos |
+|------|----------|
+| Tech stack | linguagem, runtime, frameworks |
+| Arquitetura | monólito vs microserviços, bounded contexts |
+| Infra | cloud, containers, segredos |
+| Qualidade | testes, CI/CD, lint |
+| Observabilidade | logs, métricas, tracing |
+
+Decisões ramificadas → skill **`/clarificar`**.
+
+**3. Camada agêntica** — subagentes extras, skills de domínio, hooks adicionais, CI.
+
+### Rota B — Brownfield (código existente)
+
+**1. Mapeamento as-is (obrigatório)** — executa **`/mapear`**
+(`.claude/skills/mapping/SKILL.md`). Não substitua por grep ad hoc.
+
+Produz: stack inferida, maturidade nos 5 eixos, dívidas, ADRs retroativos e
+`docs/architecture/assessment.md`. Só pergunta o que o código não revela (North Star,
+dores, o que não pode quebrar, time).
+
+**2–4. Gap → técnico → agêntica** — gap analysis vem do `/mapear`; kickoff técnico
+parte do as-is (evolução, não rewrite); camada agêntica igual ao greenfield.
+
+### Fase final — Constituição + roadmap
+
+Antes de gravar arquivos, apresenta resumo e espera **"ok"** ou ajustes (modo, stack,
+arquitetura, MVP/North Star, gaps, camada agêntica).
+
+| Arquivo | Conteúdo gerado |
+|---------|-----------------|
+| `CLAUDE.md` | stack, domínio, quirks, comandos |
+| `CLAUDE.local.md` | preferências locais |
+| `.sdd/config.json` | paths protegidos, test/build/lint |
+| `docs/architecture/assessment.md` | arquitetura inicial ou as-is + gaps |
+| `docs/architecture/adr/` | decisões (iniciais ou retroativas) |
+
+O kickoff **não escreve** `specs/BACKLOG.md`. A lista bruta de features vai para
+**`/roadmap`**, único dono do backlog — agrupa por bounded context e formata corretamente.
+
+### Depois do kickoff
+
+```
+/roadmap          →  BACKLOG.md organizado
+/integracoes      →  (se ficou pendente)
+"Nova feature: …" →  /sdd-init  →  "Aprovado"  →  /sdd-implement  →  /sdd-review
+```
+
+### Princípios de condução
+
+- Perguntas em **lotes curtos** com default recomendado
+- **Não inventa** arquitetura — propõe opções, você decide
+- **Confirma resumo** antes de gerar arquivos; **gera tudo no fim**, de uma vez
+- Tasks do roadmap ficam **resumidas** — detalhe vem depois no `sdd-init`
+
+Skill completa: [`.claude/skills/kickoff/SKILL.md`](./.claude/skills/kickoff/SKILL.md)
+
+### Skills complementares
+
+| Skill | Comando | Função |
+|-------|---------|--------|
+| **integracoes** | `/integracoes` | Levanta ferramentas do time, conecta MCPs (read-only), grava `docs/integrations/inventory.md` |
+| **clarificar** | `/clarificar` | Sabatina para decisões ramificadas (stack ↔ arquitetura ↔ infra); gera ADR |
+
+Detalhes: [integracoes](./.claude/skills/integracoes/SKILL.md) · [clarificar](./.claude/skills/clarificar/SKILL.md)
 
 ---
 
@@ -95,13 +224,13 @@ são carregados como contexto de projeto no início da sessão.
 Harness Claude Code (.claude/)          SDD (specs/)              Código
 ─────────────────────────────          ─────────────              ──────
 agents/     → 5 subagentes            features/*/requirements    src/
-skills/     → kickoff, mapear,         features/*/design.md       tests/
-              roadmap, sdd-init,        features/*/tasks.md
-              sdd-implement,            features/*/status.json     progress/
-              sdd-review
-hooks/      → disciplina automática    docs/architecture/
-knowledge/  → memória longa              assessment.md
-session-context/ → memória curta         adr/
+skills/     → kickoff, integracoes,   features/*/design.md       tests/
+              clarificar, mapear,      features/*/tasks.md        progress/
+              roadmap, sdd-*           features/*/status.json
+hooks/      → disciplina              docs/architecture/
+knowledge/  → memória longa             assessment.md
+session-context/ → memória curta       docs/integrations/
+                                        inventory.md
 ```
 
 ---
@@ -133,6 +262,8 @@ Skills são acionadas por comandos naturais ou `/nome`. Cada skill fica em sua p
 | Skill | Comando | Quando usar |
 |-------|---------|-------------|
 | `kickoff` | `/kickoff` | Iniciar ou retomar projeto — detecta greenfield/brownfield, conduz Lean Inception ou mapeamento, produz a constituição do projeto |
+| `integracoes` | `/integracoes` | Conectar ferramentas do time (MCP read-first) → `docs/integrations/inventory.md` |
+| `clarificar` | `/clarificar` | Sabatina para decisões arquiteturais ramificadas → ADR |
 | `mapping` | `/mapear` | Mapear codebase existente (brownfield) — stack, arquitetura, bounded contexts, gaps nos 5 eixos, ADRs retroativos |
 | `roadmap` | `/roadmap` | Agrupar features por contexto de domínio e escrever o `specs/BACKLOG.md` organizado |
 
@@ -147,7 +278,7 @@ Skills são acionadas por comandos naturais ou `/nome`. Cada skill fica em sua p
 **Fluxo entre skills:**
 
 ```
-/kickoff → /mapear (brownfield) → /roadmap → "Nova feature" → "Implemente" → "Revise"
+/integracoes (opcional) → /kickoff → /mapear (brownfield) → /clarificar (se ramificar) → /roadmap → ciclo sdd-*
 ```
 
 ---
@@ -263,6 +394,8 @@ Também exporta `SDD_ENFORCE=true` por padrão.
 
 | Você diz | Skill acionada | O que acontece |
 |----------|----------------|----------------|
+| `/integracoes` | **integracoes** | Inventário de ferramentas + insumos read-first |
+| `/clarificar` | **clarificar** | Decisão ramificada → ADR |
 | `/kickoff` | **kickoff** | Entrevista ou mapeamento → constituição do projeto |
 | `/mapear` | **mapping** | Retrato do codebase → `docs/architecture/assessment.md` |
 | `/roadmap` | **roadmap** | Features agrupadas por contexto → `specs/BACKLOG.md` |
@@ -326,5 +459,8 @@ Documente skills instaladas e quando aplicá-las em `CLAUDE.md`.
 
 - [AGENTS.md](./AGENTS.md) — processo e subagentes
 - [fluxoSdd.md](./fluxoSdd.md) — fluxo visual e mapa de pastas
-- [specs/README.md](./specs/README.md) — guia da pasta specs
+- [.claude/skills/integracoes/SKILL.md](./.claude/skills/integracoes/SKILL.md) — skill `/integracoes`
+- [.claude/skills/clarificar/SKILL.md](./.claude/skills/clarificar/SKILL.md) — skill `/clarificar`
+- [.claude/skills/kickoff/SKILL.md](./.claude/skills/kickoff/SKILL.md) — skill `/kickoff` completa
+- [specs/README.md](./specs/README.md) — guia da pasta specs (prelude + ciclo por feature)
 - [tests/README.md](./tests/README.md) — convenção `@covers`

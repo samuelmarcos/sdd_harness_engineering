@@ -17,8 +17,10 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    `.claude/session-context/`.
 2. **Decidir o próximo passo** conforme o ciclo SDD (ver `AGENTS.md`).
 3. **Delegar** ao subagente ou skill correta:
-   - Projeto brownfield sem assessment recente → leia e execute
-     **`.claude/skills/mapping/SKILL.md`** (`/mapear`)
+   - Projeto sem constituição → **`/kickoff`** (oferece `/integracoes` na Fase 0.5)
+   - Ferramentas do time não inventariadas → **`/integracoes`**
+   - Decisão arquitetural ramificada → **`/clarificar`**
+   - Projeto brownfield sem assessment recente → **`/mapear`**
    - Nova ideia no backlog → **`/roadmap`** (depois `spec_author` / `sdd-init`)
    - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido)
    - Spec aprovada → `implementer` ou skill `sdd-implement` (com contexto do módulo)

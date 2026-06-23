@@ -84,7 +84,9 @@ npm run lint         # lint
 
 ## Referências
 
-- Processo SDD: `AGENTS.md`, `fluxoSdd.md`
+- Processo SDD: `AGENTS.md`, `fluxoSdd.md`, `specs/README.md`
 - Backlog: `specs/BACKLOG.md`
+- Arquitetura: `docs/architecture/assessment.md`
+- Integrações: `docs/integrations/inventory.md` (via `/integracoes`)
 - Exemplo de spec: `specs/features/000-exemplo-sdd/`
 - Preferências pessoais (não versionadas): `CLAUDE.local.md`

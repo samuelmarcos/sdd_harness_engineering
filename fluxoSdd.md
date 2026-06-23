@@ -67,6 +67,7 @@ Exemplo de referência: `specs/features/000-exemplo-sdd/`.
 | `progress/current.md` | Feature ativa (gitignored) |
 | `tests/` | Testes com `// @covers R<n>` |
 | `docs/architecture/` | Arquitetura desejada — `assessment.md` (lido pelo QA) |
+| `docs/integrations/inventory.md` | Ferramentas e insumos read-first (via `/integracoes`) |
 | `.sdd/config.json` | Paths protegidos + comandos de build/test |
 
 ### Harness — agentes, skills e disciplina (`.claude/`)
@@ -74,6 +75,11 @@ Exemplo de referência: `specs/features/000-exemplo-sdd/`.
 | Pasta | Função |
 |-------|--------|
 | `.claude/agents/` | 5 subagentes: `leader`, `spec_author`, `implementer`, `quality-assurance`, `reviewer` |
+| `.claude/skills/kickoff/` | Início de projeto — greenfield/brownfield |
+| `.claude/skills/integracoes/` | Ferramentas do time — MCP read-first |
+| `.claude/skills/clarificar/` | Sabatina — decisões ramificadas → ADR |
+| `.claude/skills/mapping/` | Mapeamento as-is (brownfield) |
+| `.claude/skills/roadmap/` | BACKLOG por bounded context |
 | `.claude/skills/sdd-init/` | Criar pasta da feature + arquivos base |
 | `.claude/skills/sdd-implement/` | Implementar `tasks.md` |
 | `.claude/skills/sdd-review/` | Coordena QA + reviewer; feature só fecha com ambos ✅ |
