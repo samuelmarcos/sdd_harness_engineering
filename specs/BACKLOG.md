@@ -5,8 +5,9 @@
 
 ## Legenda
 
-`pending` → no backlog · `spec_ready` → spec aprovada · `in_progress` →
-implementando · `done` → concluída e revisada
+`pending` → no backlog · `awaiting_approval` → aguardando humano · `approved`
+→ liberada · `in_progress` → implementando · `in_review` → revisando ·
+`verified` → validada · `done` → concluída
 
 ---
 
@@ -28,14 +29,13 @@ _(nenhuma)_
 
 ---
 
-## Concluídas (done)
+## Referência (fora do backlog de produção)
 
-| ID | Feature | Concluída em |
-|----|---------|--------------|
-| 000 | Exemplo SDD (referência de formato) | — |
+| ID | Feature | Estado |
+|----|---------|--------|
+| 000 | Exemplo SDD (referência de formato) | `pending` |
 
-> A feature `000-exemplo-sdd` está em `specs/features/000-exemplo-sdd/` como
-> **modelo de referência** do formato SDD — não é código de produção.
+> A feature `000-exemplo-sdd` é um modelo, não uma feature concluída.
 
 ---
 

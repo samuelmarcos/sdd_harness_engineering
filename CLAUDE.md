@@ -4,7 +4,8 @@
 > stack, quirks). Para COMO trabalhar (Spec-Driven Development, subagentes,
 > hooks, ciclo de features) leia **`AGENTS.md`** na raiz. Nenhum código de
 > feature é escrito sem spec aprovada em `specs/features/<id>/` — o hook
-> `.claude/hooks/pre-tool-use.sh` bloqueia edições fora de `spec_ready`/`in_progress`.
+> `.claude/hooks/pre-tool-use.sh` bloqueia código fora de `approved`/`in_progress`
+> e invalida a aprovação quando a spec muda.
 
 ---
 
@@ -12,7 +13,8 @@
 
 - **Remover sem hesitar** código morto — pastas, classes, métodos e trechos não usados.
 - **Mudança mínima** por task — implemente só o que a spec pede.
-- **Testes com `@covers R<n>`** — obrigatório para rastreabilidade SDD.
+- **Testes com `@covers FNNN-R<n>`** — obrigatório para rastreabilidade SDD.
+- **TDD por slice** — RED → GREEN → REFACTOR em cada task.
 
 ---
 
@@ -44,7 +46,7 @@
 | Pasta | Função |
 |---|---|
 | `src/` | Código de produção (protegido pelo hook SDD) |
-| `tests/` | Testes com marcador `// @covers R<n>` |
+| `tests/` | Testes com marcador `@covers FNNN-R<n>` |
 | `specs/` | Especificações SDD (fonte de verdade) |
 | `progress/` | Logs de implementação por feature |
 
@@ -55,7 +57,8 @@ Adicione pastas extras em `.sdd/config.json` → `protectedPaths` se necessário
   "protectedPaths": ["src", "packages/api", "apps/web"],
   "testCommand": "npm test",
   "buildCommand": "npm run build",
-  "lintCommand": "npm run lint"
+  "lintCommand": "npm run lint",
+  "sddValidationCommand": "python3 .sdd/sdd.py validate"
 }
 ```
 

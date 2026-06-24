@@ -32,15 +32,16 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 ├── fluxoSdd.md            # Guia visual SDD + mapa de pastas
 ├── CLAUDE.local.md.example
 ├── .sdd/config.json       # Paths protegidos + comandos test/build/lint
+├── .sdd/sdd.py            # Guard, aprovação, digest e validação determinística
 │
 ├── specs/                 # SDD — especificações (fonte de verdade)
 │   ├── BACKLOG.md         # Lista priorizada de features
 │   ├── README.md          # Guia da pasta specs
 │   └── features/
-│       └── NNN-nome/      # requirements.md, design.md, tasks.md, status.json
+│       └── NNN-nome/      # requirements, design, tasks, status e reviews/
 │
 ├── progress/              # Logs de implementação por feature (impl_<id>.md)
-├── tests/                 # Testes com marcador // @covers R<n>
+├── tests/                 # Testes com marcador @covers FNNN-R<n>
 ├── docs/architecture/     # assessment.md — arquitetura desejada (lido pelo QA)
 ├── docs/integrations/     # inventory.md — ferramentas conectadas via /integracoes
 └── src/                   # Código de produção (protegido pelo hook SDD)
@@ -50,10 +51,10 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 |-----------------|--------|
 | `specs/BACKLOG.md` | Backlog priorizado — ideias entram aqui como `pending` |
 | `specs/features/NNN-nome/` | Spec completa de uma feature antes de codar |
-| `specs/features/*/status.json` | Estado: `pending` → `spec_ready` → `in_progress` → `done` |
+| `specs/features/*/status.json` | Estado, aprovação vinculada à spec e revisões |
 | `progress/impl_<id>.md` | Registro task ↔ requisito ↔ arquivos ↔ testes |
 | `progress/current.md` | Feature ativa (gitignored — cópia de trabalho) |
-| `tests/` | Prova rastreável de que cada `R<n>` foi implementado |
+| `tests/` | Prova rastreável de que cada `FNNN-R<n>` foi implementado |
 | `docs/architecture/assessment.md` | Bounded contexts e restrições — validado pelo QA na revisão |
 | `docs/integrations/inventory.md` | Ferramentas do time e insumos read-first — preenchido por `/integracoes` |
 | `.sdd/config.json` | Diretórios bloqueados pelo hook e comandos de validação |
@@ -66,12 +67,12 @@ Cada feature usa IDs encadeados:
 
 ```
 requirements.md     tasks.md              tests/
-    R1 ────────────── T1 (R1) ──────────── // @covers R1
-    R2 ────────────── T2 (R2) ──────────── // @covers R2
+ F001-R1 ───────── F001-T1 (F001-R1) ───── @covers F001-R1
+ F001-R2 ───────── F001-T2 (F001-R2) ───── @covers F001-R2
 ```
 
 O `sdd-review` coordena **quality-assurance** (funcionamento + paridade + arquitetura)
-e **reviewer** (rastreabilidade R\<n\> ↔ task ↔ teste). A feature só fecha com ambos ✅.
+e **reviewer** (rastreabilidade qualificada ↔ task ↔ teste). A feature só fecha com ambos ✅.
 
 Exemplo de formato: `specs/features/000-exemplo-sdd/`.
 
@@ -249,7 +250,7 @@ explicitamente (*"atue como leader"*).
 | `spec_author.md` | Escreve `requirements.md`, `design.md`, `tasks.md` em `specs/features/<id>/` | ❌ (só specs) |
 | `implementer.md` | Executa `tasks.md`, marca `[x]`, registra em `progress/`, escreve testes | ✅ |
 | `quality-assurance.md` | Roda build/lint/test, valida paridade, design e `docs/architecture/assessment.md` | ❌ |
-| `reviewer.md` | Audita rastreabilidade R\<n\> ↔ task ↔ teste e escopo | ❌ |
+| `reviewer.md` | Audita rastreabilidade FNNN-R\<n\> ↔ task ↔ teste e escopo | ❌ |
 
 ---
 
@@ -290,13 +291,22 @@ Scripts shell registrados em `.claude/settings.json`. Rodam sem intervenção ma
 | Hook | Arquivo | Evento | Função |
 |------|---------|--------|--------|
 | Session start | `session-start.sh` | Início de sessão | Exibe feature ativa, status de todas as features e próximos passos |
-| Pre tool use | `pre-tool-use.sh` | Antes de Edit/Write | Bloqueia edição em paths protegidos (`.sdd/config.json`) se não houver spec em `spec_ready` ou `in_progress` |
+| Pre tool use | `pre-tool-use.sh` | Antes de Edit/Write | Bloqueia paths protegidos sem aprovação persistida e válida |
 
 **Como o hook valida:**
 
 1. Lê `.claude/session-context/active-feature` (ID da feature, ex: `001-user-auth`)
-2. Consulta `specs/features/<id>/status.json`
-3. Permite edição em `src/` (e paths extras) só se status = `spec_ready` ou `in_progress`
+2. Normaliza todos os paths do payload, inclusive multi-edit
+3. Permite código apenas em `approved`/`in_progress`
+4. Recalcula o digest; mudança na spec invalida a aprovação
+
+**Controles determinísticos:**
+
+```bash
+python3 .sdd/sdd.py validate 001-user-auth
+python3 .sdd/sdd.py approve 001-user-auth --by "nome-ou-email"
+python3 -m unittest discover -s tests/harness -v
+```
 
 **Desligar temporariamente** (bootstrap inicial):
 
@@ -379,6 +389,7 @@ Também exporta `SDD_ENFORCE=true` por padrão.
         ▼
 7. Revise requirements/design/tasks → diga "Aprovado"
         │
+        │                              leader persiste aprovação + digest
         ▼
 8. "Implemente a feature NNN"      → skill sdd-implement
         │                              pre-tool-use.sh libera src/
@@ -386,10 +397,10 @@ Também exporta `SDD_ENFORCE=true` por padrão.
         ▼
 9. "Revise a feature NNN"          → skill sdd-review
         │                              quality-assurance (funcionamento + paridade)
-        │                              reviewer (R<n> ↔ // @covers R<n>)
+        │                              reviewer (FNNN-R<n> ↔ @covers)
         │                              ambos devem aprovar
         ▼
-10. Leader marca done              → status.json = done, BACKLOG atualizado
+10. Leader valida verified/done    → status.json + BACKLOG atualizados
 ```
 
 | Você diz | Skill acionada | O que acontece |
@@ -401,14 +412,16 @@ Também exporta `SDD_ENFORCE=true` por padrão.
 | `/roadmap` | **roadmap** | Features agrupadas por contexto → `specs/BACKLOG.md` |
 | `Nova feature: autenticação JWT` | **sdd-init** | Cria spec em `specs/features/001-.../` |
 | _(revise os 3 arquivos)_ | — | — |
-| `Aprovado` | — | Hook libera edição em `src/` |
+| `Aprovado` | — | Registra aprovador + digest e libera edição |
 | `Implemente a feature 001` | **sdd-implement** | Código + testes |
 | `Revise a feature 001` | **sdd-review** | QA + reviewer; veredito consolidado |
-| _(QA ✅ + Reviewer ✅)_ | **leader** | Marca `done` no BACKLOG |
+| _(QA ✅ + Reviewer ✅)_ | **leader** | Valida `verified` e marca `done` |
 
 ---
 
 ### Início rápido
+
+Pré-requisito do guard determinístico: Python 3.9+ disponível como `python3`.
 
 ```bash
 # 1. Copiar o template
@@ -436,7 +449,8 @@ claude
   "protectedPaths": ["src", "apps/web", "packages/api"],
   "testCommand": "npm test",
   "buildCommand": "npm run build",
-  "lintCommand": "npm run lint"
+  "lintCommand": "npm run lint",
+  "sddValidationCommand": "python3 .sdd/sdd.py validate"
 }
 ```
 
@@ -464,3 +478,4 @@ Documente skills instaladas e quando aplicá-las em `CLAUDE.md`.
 - [.claude/skills/kickoff/SKILL.md](./.claude/skills/kickoff/SKILL.md) — skill `/kickoff` completa
 - [specs/README.md](./specs/README.md) — guia da pasta specs (prelude + ciclo por feature)
 - [tests/README.md](./tests/README.md) — convenção `@covers`
+- [docs/proposals/001-sdd-hardening.md](./docs/proposals/001-sdd-hardening.md) — escopo reconciliado do hardening
