@@ -3,13 +3,11 @@
 > Log de implementação — **modelo de referência**. Preencha ao implementar
 > features reais.
 
-| Task | Requisito | Arquivos tocados | Testes |
-|------|-----------|------------------|--------|
-| T1 | R1, R2 | `src/health.ts` | — |
-| T2 | R1 | `src/index.ts` | — |
-| T3 | R3 | `src/health.ts` | — |
-| T4 | R1, R2 | — | `tests/health.spec.ts` |
-| T5 | R3 | — | `tests/health.spec.ts` |
+| Task | Requisito | RED | GREEN | REFACTOR | Arquivos/Testes |
+|------|-----------|-----|-------|----------|-----------------|
+| F000-T1 | F000-R1, F000-R2 | — | — | — | `src/health.ts`; `tests/health.spec.ts` |
+| F000-T2 | F000-R1 | — | — | — | `src/index.ts`; `tests/health.spec.ts` |
+| F000-T3 | F000-R3 | — | — | — | `src/health.ts`; `tests/health.spec.ts` |
 
 ## Validação
 

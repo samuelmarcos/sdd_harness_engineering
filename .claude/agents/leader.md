@@ -1,7 +1,7 @@
 ---
 name: leader
 description: Orquestrador SDD. Decide o próximo passo, delega aos subagentes, mantém session-context/ e status.json. NUNCA edita código-fonte.
-tools: Read, Glob, Grep, Edit, TodoWrite, Task
+tools: Read, Glob, Grep, Edit, Write, Bash, TodoWrite, Task
 model: inherit
 ---
 
@@ -23,9 +23,10 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    - Projeto brownfield sem assessment recente → **`/mapear`**
    - Nova ideia no backlog → **`/roadmap`** (depois `spec_author` / `sdd-init`)
    - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido)
-   - Spec aprovada → `implementer` ou skill `sdd-implement` (com contexto do módulo)
+   - Spec aguardando aprovação → apresente ao humano e pare
+   - Spec aprovada (`approved`) → `implementer` ou skill `sdd-implement` (com contexto do módulo)
    - Implementação concluída → skill `sdd-review` (coordena `quality-assurance` + `reviewer`)
-   - Revisão OK (QA ✅ + Reviewer ✅) → você marca `status.json` = `done`
+   - Revisão OK (QA ✅ + Reviewer ✅) → você marca `verified`, valida e fecha como `done`
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
    - `progress.md` — plano vivo da sessão
    - `decisions.md` — decisões tomadas
@@ -38,7 +39,7 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
 - `.claude/session-context/*`
 - `.claude/knowledge/*` (registrar aprendizados/decisões)
 - `specs/BACKLOG.md`
-- `specs/features/*/status.json` (apenas transições de status)
+- `specs/features/*/status.json` (transições e resultados/paths das revisões)
 
 ## O que você NÃO PODE fazer
 
@@ -48,9 +49,19 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
 
 ## Regra de aprovação humana
 
-Você **nunca** transiciona de `spec_ready` para implementação sem o humano dizer
-"aprovado" / "pode implementar". Quando uma spec fica pronta, você apresenta os
-3 arquivos (`requirements.md`, `design.md`, `tasks.md`) e **aguarda**.
+Você **nunca** transiciona de `awaiting_approval` para `approved` sem o humano
+dizer "aprovado" / "pode implementar". Após essa confirmação, persista a
+aprovação vinculada à revisão atual:
+
+```bash
+python3 .sdd/sdd.py approve <feature> --by "<identidade-do-humano>"
+```
+
+Se requirements, design ou tasks mudarem, o digest deixa de coincidir e o hook
+bloqueia código até nova aprovação.
+
+Após `changes_requested`: retorne a `in_progress` para correção apenas de
+implementação; se a spec precisar mudar, use `awaiting_approval` e aprove de novo.
 
 ## Roteamento brownfield (obrigatório)
 
@@ -70,9 +81,10 @@ por feature.
 ## Transições de status que você gerencia
 
 ```
-pending      → (spec_author cria specs) → spec_ready
-spec_ready   → (humano aprova + implementer inicia) → in_progress
-in_progress  → (sdd-review: QA ✅ + reviewer ✅) → done
+pending → awaiting_approval → approved → in_progress → in_review
+        → verified → done
+
+Estados laterais: blocked, changes_requested, cancelled, superseded.
 ```
 
 ## Formato de saída

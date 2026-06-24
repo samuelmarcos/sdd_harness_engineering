@@ -166,7 +166,7 @@ Aguarde "ok" ou ajustes.
 |---------|----------------|
 | `CLAUDE.md` | Stack definida, domínio, quirks, comandos |
 | `CLAUDE.local.md` | Preferências locais (não versionar) |
-| `.sdd/config.json` | `protectedPaths`, `testCommand`, `buildCommand`, `lintCommand` |
+| `.sdd/config.json` | paths, build/lint/test e validação SDD |
 | `docs/architecture/assessment.md` | As-is + gaps (brownfield) ou arquitetura inicial (greenfield) |
 | `docs/architecture/adr/` | ADRs retroativos (brownfield) ou decisões iniciais |
 
@@ -190,17 +190,17 @@ Após o kickoff, cada item do backlog segue o **ciclo SDD de 6 fases**:
 ┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
 │ 1.Descoberta│ → │2.Especificação│ → │3.Aprovação│ → │4.Implementação│ → │5.Revisão │ → │6.Done│
 │  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ sdd-review│   │leader│
-│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │ QA+review│   │ done │
+│  pending    │   │awaiting_appr. │   │ approved  │   │  in_progress  │   │in_review │   │ done │
 └─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────┘   └──────┘
 ```
 
 | # | Fase | Ação | Skill / Agente | Status |
 |---|------|------|----------------|--------|
 | 1 | **Descoberta** | Ideia entra no backlog como `pending` | — | `pending` |
-| 2 | **Especificação** | Criar `requirements.md`, `design.md`, `tasks.md` | `/sdd-init` → `spec_author` | `spec_ready` |
-| 3 | **Aprovação** | Humano lê os 3 arquivos e diz **"aprovado"** | — (gate humano) | libera impl |
+| 2 | **Especificação** | Criar e validar requirements, design e tasks | `/sdd-init` → `spec_author` | `awaiting_approval` |
+| 3 | **Aprovação** | Humano aprova; leader persiste identidade + digest | `.sdd/sdd.py approve` | `approved` |
 | 4 | **Implementação** | Executar `tasks.md`, marcar `[x]`, registrar em `progress/` | `/sdd-implement` → `implementer` | `in_progress` |
-| 5 | **Revisão** | QA + rastreabilidade via `/sdd-review` | `quality-assurance` + `reviewer` | — |
+| 5 | **Revisão** | QA + rastreabilidade via `/sdd-review` | `quality-assurance` + `reviewer` | `in_review` |
 | 6 | **Done** | Fechar feature; atualizar BACKLOG | `leader` | `done` |
 
 ### Regra de ouro
@@ -209,7 +209,7 @@ Após o kickoff, cada item do backlog segue o **ciclo SDD de 6 fases**:
 
 O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em `src/` (e paths extras em
 `.sdd/config.json`) enquanto o `status.json` da feature ativa não estiver em
-`spec_ready` ou `in_progress`.
+`approved` ou `in_progress` com digest válido.
 
 ### Como iniciar uma feature do roadmap
 
@@ -220,7 +220,7 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em `src/` (e paths ext
 2. Revise requirements.md, design.md, tasks.md
 
 3. Diga: "Aprovado"
-   → hook libera edição em src/
+   → leader registra aprovação; hook libera edição em src/
 
 4. Diga: "Implemente a feature NNN"
    → /sdd-implement executa tasks.md
@@ -235,21 +235,22 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em `src/` (e paths ext
 
 ```
 specs/features/NNN-nome/
-├── requirements.md   # R1, R2, … (formato EARS)
+├── requirements.md   # FNNN-R1, FNNN-R2, … (formato EARS)
 ├── design.md         # decisões técnicas + plano de arquivos
-├── tasks.md          # T1, T2, … (checklist com referência a R<n>)
-└── status.json       # pending | spec_ready | in_progress | done
+├── tasks.md          # FNNN-T1, … com referência a FNNN-R<n>
+├── status.json       # estado + aprovação + revisões
+└── reviews/          # relatórios de QA e rastreabilidade
 ```
 
 ### Rastreabilidade obrigatória
 
 ```
 requirements.md     tasks.md              tests/
-    R1 ────────────── T1 (R1) ──────────── // @covers R1
-    R2 ────────────── T2 (R2) ──────────── // @covers R2
+ F001-R1 ───────── F001-T1 (F001-R1) ───── @covers F001-R1
+ F001-R2 ───────── F001-T2 (F001-R2) ───── @covers F001-R2
 ```
 
-O `sdd-review` **reprova** se QA ou reviewer falharem — incluindo `R<n>` sem task/teste
+O `sdd-review` **reprova** se QA ou reviewer falharem — incluindo requisito sem task/teste
 ou regressão de resultado não documentada na spec.
 
 ---

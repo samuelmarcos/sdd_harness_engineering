@@ -2,5 +2,6 @@
   "protectedPaths": ["src"],
   "testCommand": "npm test",
   "buildCommand": "npm run build",
-  "lintCommand": "npm run lint"
+  "lintCommand": "npm run lint",
+  "sddValidationCommand": "python3 .sdd/sdd.py validate"
 }

@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SDD feature status",
+  "type": "object",
+  "required": ["id", "title", "status", "created", "updated", "approval", "reviews"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{3,}-[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "awaiting_approval",
+        "approved",
+        "in_progress",
+        "in_review",
+        "changes_requested",
+        "verified",
+        "done",
+        "blocked",
+        "cancelled",
+        "superseded"
+      ]
+    },
+    "created": {
+      "type": "string",
+      "format": "date"
+    },
+    "updated": {
+      "type": "string",
+      "format": "date"
+    },
+    "approval": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": ["status", "approvedBy", "approvedAt", "specRevision"],
+          "properties": {
+            "status": {
+              "const": "approved"
+            },
+            "approvedBy": {
+              "type": "string",
+              "minLength": 1
+            },
+            "approvedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "specRevision": {
+              "type": "string",
+              "pattern": "^sha256:[a-f0-9]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "reviews": {
+      "type": "object",
+      "required": ["qa", "traceability"],
+      "properties": {
+        "qa": {
+          "$ref": "#/$defs/review"
+        },
+        "traceability": {
+          "$ref": "#/$defs/review"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "review": {
+      "type": "object",
+      "required": ["status", "report"],
+      "properties": {
+        "status": {
+          "enum": ["pending", "approved", "changes_requested"]
+        },
+        "report": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

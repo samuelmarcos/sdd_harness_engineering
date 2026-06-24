@@ -23,8 +23,9 @@
   rastreabilidade — evitar código sem especificação aprovada.
 - Decisão: Todo trabalho de feature passa pelo ciclo SDD (BACKLOG →
   requirements/design/tasks → aprovação humana → implementação → revisão →
-  done). Hook `pre-tool-use.sh` bloqueia código sem spec `spec_ready`/`in_progress`.
+  done). O hook bloqueia código sem `approved`/`in_progress` e sem aprovação
+  vinculada ao digest atual da spec.
 - Consequências: Overhead inicial por feature; em troca, rastreabilidade
-  R\<n\> ↔ task ↔ teste e menor risco de regressões.
+  FNNN-R\<n\> ↔ task ↔ teste e menor risco de regressões.
 
 <!-- Adicione novos ADRs abaixo conforme o projeto evolui -->

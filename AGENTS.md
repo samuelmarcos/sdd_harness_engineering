@@ -54,7 +54,7 @@ session-context/    → memória curta    progress/
 | `spec_author` | Escreve `requirements.md`, `design.md`, `tasks.md` | ❌ Só specs |
 | `implementer` | Implementa seguindo `tasks.md`, marca `[x]` | ✅ Sim |
 | `quality-assurance` | Valida funcionamento, paridade, design e arquitetura | ❌ Só relata |
-| `reviewer` | Verifica rastreabilidade R\<n\> ↔ task ↔ teste e escopo | ❌ Só relata |
+| `reviewer` | Verifica rastreabilidade FNNN-R\<n\> ↔ task ↔ teste e escopo | ❌ Só relata |
 
 > O **leader** nunca edita paths protegidos (`.sdd/config.json`). Na **revisão**,
 > `sdd-review` coordena QA + reviewer — feature só fecha com **ambos** ✅.
@@ -76,7 +76,7 @@ session-context/    → memória curta    progress/
 ┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
 │ 0.Mapeamento│ → │1.Descoberta  │ → │2.Spec    │ → │3.Aprovação   │ → │4.Impl    │ → │5.Rev │ → 6.Done
 │  /mapear    │   │  BACKLOG.md  │   │spec_author│   │   HUMANO ✋  │   │implementer│   │sdd-review│   │leader│
-│  (se BF)    │   │  pending     │   │ spec_ready│   │              │   │in_progress│   │ QA+review│   │ done │
+│  (se BF)    │   │  pending     │   │awaiting_appr.│ │ approved    │   │in_progress│   │in_review │   │ done │
 └─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────────┘   └──────────┘   └──────┘
 ```
 
@@ -84,30 +84,32 @@ session-context/    → memória curta    progress/
 |---|---|---|---|
 | 0. Mapeamento | `assessment.md`, ADRs | `/mapear` (brownfield) | — |
 | 1. Descoberta | `specs/BACKLOG.md` | `/roadmap`, humano | → `pending` |
-| 2. Especificação | requirements, design, tasks | `sdd-init` → `spec_author` | → `spec_ready` |
-| 3. Aprovação | leitura + "aprovado" | **Humano** | libera impl |
+| 2. Especificação | requirements, design, tasks | `sdd-init` → `spec_author` | → `awaiting_approval` |
+| 3. Aprovação | leitura + "aprovado" persistido | **Humano** + `leader` | → `approved` |
 | 4. Implementação | tasks `[x]`, código, `progress/` | `sdd-implement` | → `in_progress` |
-| 5. Revisão | relatório consolidado | `sdd-review` | QA ✅ + reviewer ✅ |
-| 6. Fechamento | `status.json` = `done` | `leader` | → `done` |
+| 5. Revisão | relatórios persistidos | `sdd-review` | → `in_review` |
+| 6. Fechamento | QA ✅ + reviewer ✅ | `leader` | `verified` → `done` |
 
 ---
 
 ## Regra de ouro: SEM SPEC APROVADA, SEM CÓDIGO
 
 O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em paths de
-`.sdd/config.json` quando a feature ativa não está em `spec_ready` ou `in_progress`.
+`.sdd/config.json` quando a feature não está em `approved`/`in_progress` ou a
+spec mudou depois da aprovação.
 
 **Sequência típica:**
 
 1. Prelude: `/integracoes` (opc.) → `/kickoff` → `/mapear` → `/roadmap`
-2. Por feature: `sdd-init` → humano **aprovado** → `sdd-implement` → `sdd-review`
+2. Por feature: `sdd-init` → humano **aprovado** → aprovação persistida →
+   `sdd-implement` → `sdd-review`
 3. Decisão ramificada mid-spec: `/clarificar` → ADR → retomar spec
 
 ---
 
-## Rastreabilidade R\<n\>
+## Rastreabilidade FNNN-R\<n\>
 
-- **`reviewer`** falha se algum `R<n>` não tiver task **e** teste.
+- **`reviewer`** falha se algum `FNNN-R<n>` não tiver task **e** teste.
 - **`quality-assurance`** falha se build/lint/test quebrarem, houver regressão
   não documentada, ou violação de `design.md` / `assessment.md`.
 
@@ -122,7 +124,7 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em paths de
 | "Mapeie X" | `/mapear` focal → assessment + contexto do módulo |
 | "Preciso decidir arquitetura" | `/clarificar` → ADR |
 | "Nova feature: X" | `/mapear` focal (se BF) → `sdd-init` |
-| "Aprovado" | libera `sdd-implement` |
+| "Aprovado" | `leader` persiste aprovação + digest e libera `sdd-implement` |
 | "Implemente a feature NNN" | `sdd-implement` |
 | "Revise a feature NNN" | `sdd-review` (QA + reviewer) |
 | "Status do projeto" | `leader` lê `status.json` + BACKLOG |
@@ -132,6 +134,7 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em paths de
 ## Convenções de arquivo
 
 - IDs: `NNN-kebab-case`
+- Requisitos/tasks: `FNNN-R<n>` / `FNNN-T<n>`
 - `design.md`: **`## Contexto as-is`** (brownfield)
 - `progress/impl_<id>.md`: **`## Contexto do módulo`** (pós-`/mapear` focal)
 - Insumos externos: `docs/integrations/inventory.md` (via `/integracoes`)

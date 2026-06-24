@@ -14,10 +14,11 @@ specs/
 ├── BACKLOG.md           # features priorizadas (don o: skill /roadmap)
 └── features/
     └── NNN-nome/
-        ├── requirements.md   # R1, R2, … (formato EARS)
+        ├── requirements.md   # FNNN-R1, FNNN-R2, … (formato EARS)
         ├── design.md         # decisões + File Structure Plan + Contexto as-is
-        ├── tasks.md          # T1, T2, … (checklist com referência a R<n>)
-        └── status.json       # pending | spec_ready | in_progress | done
+        ├── tasks.md          # FNNN-T1, … com referência a FNNN-R<n>
+        ├── status.json       # estado + aprovação + revisões
+        └── reviews/          # relatórios persistidos de QA e rastreabilidade
 ```
 
 | Arquivo | Função |
@@ -70,7 +71,7 @@ Depois que o item está no `BACKLOG.md`:
 ┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
 │ 1.Descoberta│ → │2.Especificação│ → │3.Aprovação│ → │4.Implementação│ → │5.Revisão │ → │6.Done│
 │  BACKLOG.md │   │  sdd-init     │   │  HUMANO  │   │ sdd-implement │   │sdd-review│   │leader│
-│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │ QA+review│   │ done │
+│  pending    │   │awaiting_appr. │   │ approved  │   │  in_progress  │   │in_review │   │ done │
 └─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────┘   └──────┘
 ```
 
@@ -80,10 +81,10 @@ Depois que o item está no `BACKLOG.md`:
 | 1 | Descoberta | item já no `BACKLOG.md` | `pending` |
 | 2 | Especificação | `sdd-init` → `spec_author` | `requirements.md`, `design.md`, `tasks.md` |
 | 2b | Decisão ambígua | `/clarificar` → ADR | referência em `design.md` |
-| 3 | Aprovação | **humano** diz **"aprovado"** | libera hook em paths protegidos |
+| 3 | Aprovação | humano + `leader` | aprovação persistida → `approved` |
 | 4 | Implementação | `sdd-implement` → `implementer` | `tasks.md` `[x]`, `progress/impl_*.md` |
-| 5 | Revisão | `sdd-review` | QA ✅ + reviewer ✅ |
-| 6 | Done | `leader` | `status.json` = `done`, BACKLOG atualizado |
+| 5 | Revisão | `sdd-review` | `in_review` + relatórios persistidos |
+| 6 | Done | `leader` | `verified` → `done`, BACKLOG atualizado |
 
 ### Comandos naturais
 
@@ -91,7 +92,7 @@ Depois que o item está no `BACKLOG.md`:
 |----------|----------------|
 | `Nova feature: autenticação JWT` | `sdd-init` — cria `specs/features/001-.../` |
 | _(revise os 3 arquivos)_ | — |
-| `Aprovado` | Hook libera edição em paths de `.sdd/config.json` |
+| `Aprovado` | Leader persiste aprovação + digest; hook libera código |
 | `Implemente a feature 001` | `sdd-implement` |
 | `Revise a feature 001` | `sdd-review` (QA + reviewer) |
 
@@ -102,21 +103,25 @@ Depois que o item está no `BACKLOG.md`:
 | Status | Significado | Pode editar código? |
 |--------|-------------|---------------------|
 | `pending` | No backlog, spec incompleta | ❌ |
-| `spec_ready` | Spec pronta, **aprovada pelo humano** | ✅ |
+| `awaiting_approval` | Spec pronta, aguardando humano | ❌ |
+| `approved` | Humano aprovou o digest atual | ✅ |
 | `in_progress` | Implementação em andamento | ✅ |
-| `done` | Implementada, revisada e rastreável | — |
+| `in_review` | QA e reviewer em execução | ❌ |
+| `changes_requested` | Revisão pediu mudanças | ❌ |
+| `verified` | QA e reviewer aprovaram | ❌ |
+| `done` | Implementada, revisada e rastreável | ❌ |
 
 O hook `.claude/hooks/pre-tool-use.sh` bloqueia paths em `.sdd/config.json`
-(envelope padrão: `src/`) quando a feature ativa **não** está em `spec_ready`
-ou `in_progress`.
+(envelope padrão: `src/`) quando a feature ativa **não** está em `approved`
+ou `in_progress`, ou quando a spec mudou após aprovação.
 
 ---
 
 ## Conteúdo de cada arquivo da spec
 
-### `requirements.md` — EARS + R\<n\>
+### `requirements.md` — EARS + FNNN-R\<n\>
 
-- **R1**, **R2**, … — requisitos rastreáveis
+- **F001-R1**, **F001-R2**, … — requisitos rastreáveis sem ambiguidade
 - Padrões: ubíquo, event-driven, state-driven, unwanted
 - Use insumos de `docs/integrations/inventory.md` quando relevante (APIs, ambientes)
 
@@ -127,12 +132,12 @@ Seções esperadas:
 - **`## Contexto as-is`** — brownfield: resumo de `assessment.md` + módulos tocados
 - **Decisões técnicas** — alternativas consideradas; cite ADR se veio de `/clarificar`
 - **File Structure Plan** — arquivos a criar/alterar
-- **Mapeamento R\<n\> → módulos**
+- **Mapeamento FNNN-R\<n\> → módulos**
 
 ### `tasks.md` — checklist
 
-- **T1**, **T2**, … — cada task referencia `(R1)` ou `(R1, R3)`
-- Tasks de teste explícitas quando o requisito exige `@covers`
+- **F001-T1**, **F001-T2**, … — cada task referencia requisitos qualificados
+- Cada task executa RED → GREEN → REFACTOR e usa `@covers FNNN-R<n>`
 
 ### `status.json`
 
@@ -140,25 +145,34 @@ Seções esperadas:
 {
   "id": "001-user-auth",
   "title": "Autenticação de usuário",
-  "status": "spec_ready",
+  "status": "awaiting_approval",
   "created": "2026-06-22",
-  "updated": "2026-06-22"
+  "updated": "2026-06-22",
+  "approval": null,
+  "reviews": {
+    "qa": { "status": "pending", "report": null },
+    "traceability": { "status": "pending", "report": null }
+  }
 }
 ```
 
----
+Após aprovação explícita:
 
-## Rastreabilidade R\<n\>
+```bash
+python3 .sdd/sdd.py approve 001-user-auth --by "nome-ou-email"
+```
+
+## Rastreabilidade FNNN-R\<n\>
 
 ```
 requirements.md     tasks.md              tests/
-    R1 ────────────── T1 (R1) ──────────── // @covers R1
-    R2 ────────────── T2 (R2) ──────────── // @covers R2
+ F001-R1 ───────── F001-T1 (F001-R1) ───── @covers F001-R1
+ F001-R2 ───────── F001-T2 (F001-R2) ───── @covers F001-R2
 ```
 
 | Agente | Critério de reprovação (via `sdd-review`) |
 |--------|-------------------------------------------|
-| **reviewer** | Algum `R<n>` sem task **ou** sem teste `// @covers R<n>` |
+| **reviewer** | Algum requisito sem task **ou** sem `@covers FNNN-R<n>` |
 | **quality-assurance** | Build/lint/test falham; regressão não documentada; violação de `design.md` ou `assessment.md` |
 
 Feature só fecha com **ambos** ✅.

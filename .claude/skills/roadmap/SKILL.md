@@ -127,7 +127,8 @@ Após confirmação, gere ou atualize `specs/BACKLOG.md` com a estrutura:
 ```markdown
 # BACKLOG
 
-> Organizado por contexto. Status: pending | spec_ready | in_progress | done.
+> Organizado por contexto. Status: pending | awaiting_approval | approved |
+> in_progress | in_review | verified | done.
 > Prioridade dentro de cada contexto: de cima para baixo.
 
 ## Contexto: <nome>
