@@ -10,10 +10,11 @@ Executa a implementação de uma feature **com spec aprovada**.
 ## Pré-condições (BLOQUEANTES)
 
 1. `specs/features/<id>/status.json` existe.
-2. `status` é `spec_ready` (humano aprovou) ou `in_progress`.
+2. `status` é `approved` ou `in_progress`.
 3. O humano deu OK explícito ("aprovado" / "pode implementar").
+4. A aprovação persistida corresponde ao digest atual da spec.
 
-> Se o status for `pending`, **pare**: a spec ainda não foi aprovada. O hook
+> Se o status não for `approved`/`in_progress`, **pare**. O hook
 > `pre-tool-use.sh` bloqueará edições em código de qualquer forma.
 
 ## Passos
@@ -28,13 +29,16 @@ Executa a implementação de uma feature **com spec aprovada**.
 4. **Transicione** `status.json` para `in_progress` (atualize `updated`).
 5. **Crie** `progress/impl_<id>.md` com:
    - `## Contexto do módulo` (do `/mapear` focal)
-   - tabela Task ↔ R\<n\> ↔ arquivos ↔ testes
+   - tabela Task ↔ FNNN-R\<n\> ↔ RED/GREEN/REFACTOR ↔ arquivos/testes
 6. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
-   - Para cada task: implemente o mínimo, marque `[x]`, registre no log.
-   - Escreva testes em `tests/` com `// @covers R<n>`.
+   - Para cada task, execute **RED → GREEN → REFACTOR**.
+   - Confirme a falha esperada antes do código.
+   - Implemente o mínimo, refatore com a suíte verde, marque `[x]` e registre.
+   - Use `@covers FNNN-R<n>` nos testes.
 7. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
    lints introduzidos.
-8. **Atualize** `progress/current.md` com o andamento.
+8. **Valide** com `python3 .sdd/sdd.py validate <id>`.
+9. **Atualize** `progress/current.md` com o andamento.
 
 ## Disciplina
 

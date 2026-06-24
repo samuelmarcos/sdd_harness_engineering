@@ -10,11 +10,11 @@ validar que o serviço está operacional após deploy.
 
 ## Requisitos
 
-- **R1** (event): QUANDO `GET /health` for chamado, o sistema DEVE retornar
+- **F000-R1** (event): QUANDO `GET /health` for chamado, o sistema DEVE retornar
   status HTTP 200 com corpo JSON contendo `{ "status": "ok" }`.
-- **R2** (ubiquitous): O sistema DEVE incluir no JSON o campo `timestamp` em
+- **F000-R2** (ubiquitous): O sistema DEVE incluir no JSON o campo `timestamp` em
   formato ISO 8601 (UTC).
-- **R3** (unwanted): SE o serviço estiver indisponível, ENTÃO o endpoint DEVE
+- **F000-R3** (unwanted): SE o serviço estiver indisponível, ENTÃO o endpoint DEVE
   retornar status HTTP 503 com `{ "status": "error" }`.
 
 ## Fora de escopo

@@ -6,11 +6,11 @@
 | Termo | Definição |
 |---|---|
 | **Feature** | Unidade de trabalho com spec em `specs/features/NNN-nome/`. |
-| **R\<n\>** | Requisito rastreável em `requirements.md` (R1, R2, ...). |
-| **T\<n\>** | Task em `tasks.md`, ligada a um ou mais R\<n\>. |
+| **FNNN-R\<n\>** | Requisito qualificado pela feature, como `F001-R1`. |
+| **FNNN-T\<n\>** | Task qualificada, ligada a um ou mais requisitos. |
 | **Harness** | Infraestrutura de agentes em `.claude/` (skills, hooks, subagentes). |
 | **SDD** | Spec-Driven Development — spec aprovada antes de código. |
-| **@covers** | Marcador em testes que liga o teste a um requisito R\<n\>. |
+| **@covers** | Marcador em testes que liga o teste a um requisito qualificado. |
 | **Quality-assurance (QA)** | Subagente que valida funcionamento, paridade, design e arquitetura. |
 | **Paridade** | Mesmos resultados que antes da mudança, salvo delta documentado na spec. |
 | **sdd-review** | Skill que coordena QA + reviewer; feature só fecha com ambos ✅. |

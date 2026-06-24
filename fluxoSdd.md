@@ -11,7 +11,7 @@
 **Sem spec aprovada, sem código.**
 
 O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em diretórios protegidos
-(padrão: `src/`) quando a feature ativa **não** está em `spec_ready` ou `in_progress`.
+quando a feature não está em `approved`/`in_progress` ou a spec mudou após aprovação.
 
 ---
 
@@ -21,7 +21,7 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em diretórios protegi
 ┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
 │ 1.Descoberta│ → │2.Especificação│ → │3.Aprovação│ → │4.Implementação│ → │5.Revisão │ → │6.Done│
 │  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ sdd-review│   │leader│
-│  pending    │   │  spec_ready   │   │   ✋      │   │  in_progress  │   │ QA+review│   │ done │
+│  pending    │   │awaiting_appr. │   │ approved  │   │  in_progress  │   │in_review │   │ done │
 └─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────┘   └──────┘
 ```
 
@@ -32,11 +32,11 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em diretórios protegi
 | # | Fase | O que acontece | Artefatos | Status |
 |---|------|----------------|-----------|--------|
 | 1 | **Descoberta** | Ideia entra no backlog | `specs/BACKLOG.md` | `pending` |
-| 2 | **Especificação** | Skill `sdd-init` cria pasta + spec | `requirements.md`, `design.md`, `tasks.md`, `status.json` | → `spec_ready` |
-| 3 | **Aprovação** | Humano lê os 3 arquivos e diz **"aprovado"** | — | libera implementação |
+| 2 | **Especificação** | Skill `sdd-init` cria e valida a spec | requirements, design, tasks, status | → `awaiting_approval` |
+| 3 | **Aprovação** | Humano aprova; leader persiste identidade + digest | `status.json` | → `approved` |
 | 4 | **Implementação** | Skill `sdd-implement`; tasks viram código | `tasks.md` com `[x]`, código, `progress/impl_*.md` | → `in_progress` |
-| 5 | **Revisão** | Skill `sdd-review` — QA + rastreabilidade | relatório consolidado | — |
-| 6 | **Done** | Feature fechada | `status.json` = `done`, BACKLOG atualizado | `done` |
+| 5 | **Revisão** | Skill `sdd-review` — QA + rastreabilidade | relatórios persistidos | `in_review` |
+| 6 | **Done** | Feature validada e fechada | `verified` → `done`, BACKLOG atualizado | `done` |
 
 ---
 
@@ -44,10 +44,11 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em diretórios protegi
 
 ```
 specs/features/NNN-nome/
-├── requirements.md   # R1, R2, ... (formato EARS)
+├── requirements.md   # FNNN-R1, FNNN-R2, ... (formato EARS)
 ├── design.md         # decisões técnicas + plano de arquivos
-├── tasks.md          # T1, T2, ... (checklist)
-└── status.json       # pending | spec_ready | in_progress | done
+├── tasks.md          # FNNN-T1, ... (RED → GREEN → REFACTOR)
+├── status.json       # estado + aprovação + revisões
+└── reviews/          # relatórios de QA e rastreabilidade
 ```
 
 Exemplo de referência: `specs/features/000-exemplo-sdd/`.
@@ -65,7 +66,7 @@ Exemplo de referência: `specs/features/000-exemplo-sdd/`.
 | `specs/features/NNN-nome/` | Uma feature completa |
 | `progress/` | Log de implementação (`impl_<id>.md`) |
 | `progress/current.md` | Feature ativa (gitignored) |
-| `tests/` | Testes com `// @covers R<n>` |
+| `tests/` | Testes com `@covers FNNN-R<n>` |
 | `docs/architecture/` | Arquitetura desejada — `assessment.md` (lido pelo QA) |
 | `docs/integrations/inventory.md` | Ferramentas e insumos read-first (via `/integracoes`) |
 | `.sdd/config.json` | Paths protegidos + comandos de build/test |
@@ -110,10 +111,10 @@ session-context/    → memória curta    progress/
 2. Leia o contexto emitido pelo hook `session-start.sh`.
 3. Diga: **"Nova feature: descrição da funcionalidade"**
 4. Revise `requirements.md`, `design.md`, `tasks.md` gerados.
-5. Diga: **"Aprovado"**
+5. Diga: **"Aprovado"** (leader persiste aprovação + digest)
 6. Diga: **"Implemente a feature 001"**
 7. Diga: **"Revise a feature 001"** (skill `sdd-review` aciona QA + reviewer)
-8. Confirme veredito consolidado (QA ✅ + Reviewer ✅), `status.json` = `done` e BACKLOG atualizado.
+8. Confirme veredito consolidado, `verified` → `done` e BACKLOG atualizado.
 
 ---
 

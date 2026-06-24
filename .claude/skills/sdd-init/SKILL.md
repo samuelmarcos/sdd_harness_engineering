@@ -39,7 +39,7 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
    `docs/integrations/inventory.md` (insumos de `/integracoes`).
 
 5. Se **`design.md` exigir decisão arquitetural ramificada** ainda em aberto →
-   **pare** e rode **`/clarificar`** antes de marcar `spec_ready`.
+   **pare** e rode **`/clarificar`** antes de marcar `awaiting_approval`.
 
 6. **Delegue ao subagente `spec_author`** para preencher os detalhes (ou
    preencha você mesmo seguindo o template).
@@ -47,22 +47,24 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 7. **Defina a feature ativa**: escreva o ID em
    `.claude/session-context/active-feature`.
 
-8. **Pare e peça aprovação humana** — não implemente nada ainda.
+8. **Valide** com `python3 .sdd/sdd.py validate <id>`.
+
+9. **Defina `awaiting_approval` e pare** — não implemente nada ainda.
 
 ## Template — `requirements.md`
 
 ```markdown
 # Requisitos — <id> <título>
 
-> Formato EARS. Cada requisito tem ID R<n> rastreável.
+> Formato EARS. Cada requisito tem ID FNNN-R<n> rastreável.
 
 ## Contexto
 <1-2 parágrafos: problema e objetivo>
 
 ## Requisitos
-- **R1** (event): QUANDO <gatilho>, o sistema DEVE <resposta>.
-- **R2** (ubiquitous): O sistema DEVE <resposta>.
-- **R3** (unwanted): SE <condição>, ENTÃO o sistema DEVE <resposta>.
+- **F001-R1** (event): QUANDO <gatilho>, o sistema DEVE <resposta>.
+- **F001-R2** (ubiquitous): O sistema DEVE <resposta>.
+- **F001-R3** (unwanted): SE <condição>, ENTÃO o sistema DEVE <resposta>.
 
 ## Fora de escopo
 - <o que NÃO será feito>
@@ -87,10 +89,10 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 |---------|------|--------|
 | src/... | criar/alterar | ... |
 
-## Mapeamento R<n> → módulos
+## Mapeamento FNNN-R<n> → módulos
 | Requisito | Módulo/arquivo |
 |-----------|----------------|
-| R1 | ... |
+| F001-R1 | ... |
 
 ## Riscos / Impacto
 - <riscos, features afetadas>
@@ -101,9 +103,8 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 ```markdown
 # Tasks — <id> <título>
 
-- [ ] T1 — <ação> (R1)
-- [ ] T2 — <ação> (R2)
-- [ ] T3 — Teste: <cenário> (R1)
+- [ ] F001-T1 — <slice> via RED → GREEN → REFACTOR (F001-R1)
+- [ ] F001-T2 — <slice> via RED → GREEN → REFACTOR (F001-R2)
 ```
 
 ## Template — `status.json`
@@ -112,13 +113,19 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 {
   "id": "<id>",
   "title": "<título>",
-  "status": "pending",
+  "status": "awaiting_approval",
   "created": "<YYYY-MM-DD>",
-  "updated": "<YYYY-MM-DD>"
+  "updated": "<YYYY-MM-DD>",
+  "approval": null,
+  "reviews": {
+    "qa": { "status": "pending", "report": null },
+    "traceability": { "status": "pending", "report": null }
+  }
 }
 ```
 
-> Após o `spec_author` preencher tudo, atualize `status` para `spec_ready`.
+> `awaiting_approval` não libera código. Após aprovação explícita:
+> `python3 .sdd/sdd.py approve <id> --by "<identidade>"`.
 
 ## Saída
 

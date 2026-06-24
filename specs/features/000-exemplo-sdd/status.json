@@ -3,5 +3,16 @@
   "title": "Exemplo SDD — health check (referência de formato)",
   "status": "pending",
   "created": "2026-06-22",
-  "updated": "2026-06-22"
+  "updated": "2026-06-23",
+  "approval": null,
+  "reviews": {
+    "qa": {
+      "status": "pending",
+      "report": null
+    },
+    "traceability": {
+      "status": "pending",
+      "report": null
+    }
+  }
 }
