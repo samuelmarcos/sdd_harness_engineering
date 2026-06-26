@@ -35,6 +35,7 @@ specs/
 | `docs/integrations/inventory.md` | Ferramentas reais (via `/integracoes`) — enriquece requisitos e design |
 | `docs/architecture/adr/` | Decisões ramificadas (via `/clarificar`) — referenciar em `design.md` |
 | `progress/impl_<id>.md` | Log de implementação + `## Contexto do módulo` |
+| `.claude/session-context/features/<id>/context.md` | Memória curta da feature (SessionManager) |
 
 ---
 

@@ -54,6 +54,19 @@ Inclua:
 - **Mapeamento FNNN-R\<n\> → arquivos/módulos**
 - **Riscos** e impacto em features existentes
 
+Opcional — se a feature precisa de contexto persistente entre sessões, inclua:
+
+```markdown
+## Dependências de sessão
+
+feature_id: 001-user-auth
+requires_persistence: true
+resume_strategy: summary   # ou step-object
+```
+
+O harness carrega `.claude/session-context/features/<feature_id>/context.md`
+via `SessionManager` (ver `memory/memory.md`).
+
 Se a decisão estrutural ainda estiver em aberto → **não** feche o design; peça
 `/clarificar` ao `leader`.
 

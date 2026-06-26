@@ -45,7 +45,8 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
    preencha você mesmo seguindo o template).
 
 7. **Defina a feature ativa**: escreva o ID em
-   `.claude/session-context/active-feature`.
+   `.claude/session-context/active-feature` e rode
+   `python3 .sdd/sdd.py session bootstrap` (cria `features/<id>/context.md`).
 
 8. **Valide** com `python3 .sdd/sdd.py validate <id>`.
 

@@ -20,6 +20,91 @@ Humano aprova spec  →  Agente implementa  →  sdd-review (QA + reviewer)
 
 ---
 
+## Fluxos principais
+
+Visão integrada do template. Detalhes por skill ficam nas seções abaixo e em `fluxoSdd.md`.
+
+### Prelude do projeto (uma vez)
+
+```mermaid
+flowchart LR
+    A["/integracoes\n(opcional)"] --> B["/kickoff"]
+    B --> C{Modo?}
+    C -->|Brownfield| D["/mapear global\n→ assessment.md"]
+    C -->|Greenfield| E["Lean Inception"]
+    D --> F["/clarificar\n(se ramificar)"]
+    E --> F
+    F --> G["/roadmap\n→ BACKLOG.md"]
+    G --> H["Ciclo SDD\npor feature"]
+```
+
+### Ciclo SDD por feature
+
+```mermaid
+flowchart TD
+    A["sdd-init\nNova feature"] --> B{Altera src/?\nBrownfield}
+    B -->|Sim| C["/mapear global ou focal\n→ design.md Contexto as-is"]
+    B -->|Não| D["spec_author\nrequirements + design + tasks"]
+    C --> D
+    D --> E["awaiting_approval\nHumano revisa spec"]
+    E --> F["Aprovado\nsdd.py approve + digest"]
+    F --> G["sdd-implement"]
+    G --> H{Contexto do\nmódulo existe?}
+    H -->|Não| I["/mapear focal\n→ progress/impl_id.md"]
+    H -->|Sim| J["implementer\nRED → GREEN → REFACTOR"]
+    I --> J
+    J --> K["sdd-review\nQA + reviewer"]
+    K --> L{Ambos ✅?}
+    L -->|Sim| M["leader: verified → done"]
+    L -->|Não| N["changes_requested\n→ corrigir"]
+```
+
+| Fase | Skill / comando | Artefato principal |
+|------|-----------------|-------------------|
+| Spec | `sdd-init` + `spec_author` | `specs/features/<id>/` |
+| Aprovação | humano + `sdd.py approve` | `status.json` + digest |
+| Implementação | `sdd-implement` + `/mapear` focal | `progress/impl_<id>.md`, código, testes |
+| Revisão | `sdd-review` | `reviews/qa-*.md`, `reviews/traceability-*.md` |
+| Fechamento | `leader` | `status.json` → `done` |
+
+### `/mapear` global vs focal
+
+Dois momentos distintos — não confundir:
+
+| Tipo | Quando | Escopo | Saída |
+|------|--------|--------|-------|
+| **Global** | Kickoff brownfield, antes de specs | Repositório ou bounded context | `docs/architecture/assessment.md` |
+| **Focal** | `sdd-init` ou `sdd-implement` (brownfield) | Só arquivos que as tasks vão tocar + vizinhos | `design.md` → `## Contexto as-is` e/ou `progress/impl_<id>.md` → `## Contexto do módulo` |
+
+O **mapear focal** evita codar “no escuro”: documenta convenções locais, acoplamentos e riscos antes de editar `src/`.
+
+### Memória de sessão (curto + longo prazo)
+
+Roda em paralelo ao SDD — infraestrutura, não feature de produto.
+
+```mermaid
+flowchart TD
+    A["Início de sessão\nsession-start.sh"] --> B["sdd.py session bootstrap"]
+    B --> C["session-context/\ncurto prazo"]
+    C --> D["global/working.md\nfeatures/id/context.md"]
+    D --> E{Tokens ≥ limiar?}
+    E -->|Sim| F["session checkpoint\n→ checkpoints/"]
+    E -->|Não| G["leader/implementer\nsession context"]
+    F --> H["Stub resumido +\narquivo completo em checkpoints/"]
+    H --> G
+    G --> I["learned-lessons.md\nmemória longa persistente"]
+```
+
+| Nível | Pasta | Git |
+|-------|-------|-----|
+| Curto prazo | `.claude/session-context/` | Ignorado |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado |
+| Lições | `.claude/knowledge/learned-lessons.md` | Versionado |
+
+**Brownfield — layout antigo de session-context:** se o projeto já usava `progress.md` plano na raiz, rode uma vez `python3 .sdd/migrate_session_context.py --dry-run` antes do bootstrap. Projetos novos não precisam.
+
+---
+
 ## Estrutura geral (independente do modelo de IA)
 
 Pastas compartilhadas pelo processo SDD — qualquer agente de IA deve respeitar
@@ -31,19 +116,28 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 ├── CLAUDE.md              # Contexto técnico — O QUE construir (adaptável por IA)
 ├── fluxoSdd.md            # Guia visual SDD + mapa de pastas
 ├── CLAUDE.local.md.example
-├── .sdd/config.json       # Paths protegidos + comandos test/build/lint
-├── .sdd/sdd.py            # Guard, aprovação, digest e validação determinística
+├── .sdd/config.json       # Paths protegidos, comandos test/build/lint, sessionMemory
+├── .sdd/sdd.py            # Guard, aprovação, digest, validação e memória de sessão
+├── .sdd/migrate_session_context.py  # Migração brownfield de session-context legado
+│
+├── .claude/               # Harness Claude Code (subagentes, skills, hooks, memória)
+│   ├── agents/            # leader, spec_author, implementer, QA, reviewer
+│   ├── skills/            # kickoff, mapear, sdd-*, integracoes, clarificar, roadmap
+│   ├── hooks/             # session-start.sh, pre-tool-use.sh
+│   ├── knowledge/         # session_manager.py, checkpoints/, learned-lessons.md
+│   └── session-context/   # Memória curta (gitignored) — global/, features/
 │
 ├── specs/                 # SDD — especificações (fonte de verdade)
-│   ├── BACKLOG.md         # Lista priorizada de features
-│   ├── README.md          # Guia da pasta specs
-│   └── features/
-│       └── NNN-nome/      # requirements, design, tasks, status e reviews/
+│   ├── BACKLOG.md
+│   ├── README.md
+│   └── features/NNN-nome/ # requirements, design, tasks, status, reviews/
 │
-├── progress/              # Logs de implementação por feature (impl_<id>.md)
-├── tests/                 # Testes com marcador @covers FNNN-R<n>
-├── docs/architecture/     # assessment.md — arquitetura desejada (lido pelo QA)
-├── docs/integrations/     # inventory.md — ferramentas conectadas via /integracoes
+├── progress/              # Logs de implementação (impl_<id>.md)
+├── tests/                 # Testes com @covers FNNN-R<n> + tests/harness/ (Python)
+├── memory/                # Spec de memória de sessão (memory.md)
+├── docs/
+│   ├── architecture/      # assessment.md, adr/ (ADR-001 session-context)
+│   └── integrations/      # inventory.md — /integracoes
 └── src/                   # Código de produção (protegido pelo hook SDD)
 ```
 
@@ -55,9 +149,28 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 | `progress/impl_<id>.md` | Registro task ↔ requisito ↔ arquivos ↔ testes |
 | `progress/current.md` | Feature ativa (gitignored — cópia de trabalho) |
 | `tests/` | Prova rastreável de que cada `FNNN-R<n>` foi implementado |
+| `tests/harness/` | Testes unitários de `sdd.py` e `session_manager.py` |
 | `docs/architecture/assessment.md` | Bounded contexts e restrições — validado pelo QA na revisão |
-| `docs/integrations/inventory.md` | Ferramentas do time e insumos read-first — preenchido por `/integracoes` |
-| `.sdd/config.json` | Diretórios bloqueados pelo hook e comandos de validação |
+| `docs/architecture/adr/` | Decisões arquiteturais (ex.: ADR-001 memória de sessão) |
+| `docs/integrations/inventory.md` | Ferramentas do time — preenchido por `/integracoes` |
+| `memory/memory.md` | Guia de implementação da memória curta/longa |
+| `.sdd/config.json` | Paths protegidos, comandos test/build/lint, `sessionMemory` |
+| `.sdd/sdd.py` | CLI: guard, validate, approve, digest, session * |
+| `.claude/knowledge/session_manager.py` | Motor de memória curta/longa |
+
+---
+
+## Scripts Python (harness)
+
+Sem dependências externas. Invocados pelos hooks e pelos agentes.
+
+| Script | Função |
+|--------|--------|
+| `.sdd/sdd.py` | CLI: `guard`, `validate`, `approve`, `digest`, subcomandos `session` |
+| `.claude/knowledge/session_manager.py` | `SessionManager` — memória curta (`.claude/session-context/`) e longa (`checkpoints/`) |
+| `.sdd/migrate_session_context.py` | **Brownfield:** copia layout plano legado (`progress.md`) → `global/working.md`; cria `features/<id>/context.md`. Rode `--dry-run` antes. |
+
+Detalhes e exemplos de comando: **`CLAUDE.md`** → seções *Scripts Python* e *Memória de sessão*.
 
 ---
 
@@ -182,8 +295,10 @@ O kickoff **não escreve** `specs/BACKLOG.md`. A lista bruta de features vai par
 ```
 /roadmap          →  BACKLOG.md organizado
 /integracoes      →  (se ficou pendente)
-"Nova feature: …" →  /sdd-init  →  "Aprovado"  →  /sdd-implement  →  /sdd-review
+"Nova feature"    →  sdd-init  →  "Aprovado"  →  sdd-implement (+ /mapear focal)  →  sdd-review
 ```
+
+Cada nova sessão Claude: `session-start.sh` restaura memória curta e status das features.
 
 ### Princípios de condução
 
@@ -229,9 +344,10 @@ skills/     → kickoff, integracoes,   features/*/design.md       tests/
               clarificar, mapear,      features/*/tasks.md        progress/
               roadmap, sdd-*           features/*/status.json
 hooks/      → disciplina              docs/architecture/
-knowledge/  → memória longa             assessment.md
+knowledge/  → memória longa            assessment.md, adr/
+              session_manager.py
 session-context/ → memória curta       docs/integrations/
-                                        inventory.md
+checkpoints/ → pós-checkpoint          inventory.md
 ```
 
 ---
@@ -265,7 +381,7 @@ Skills são acionadas por comandos naturais ou `/nome`. Cada skill fica em sua p
 | `kickoff` | `/kickoff` | Iniciar ou retomar projeto — detecta greenfield/brownfield, conduz Lean Inception ou mapeamento, produz a constituição do projeto |
 | `integracoes` | `/integracoes` | Conectar ferramentas do time (MCP read-first) → `docs/integrations/inventory.md` |
 | `clarificar` | `/clarificar` | Sabatina para decisões arquiteturais ramificadas → ADR |
-| `mapping` | `/mapear` | Mapear codebase existente (brownfield) — stack, arquitetura, bounded contexts, gaps nos 5 eixos, ADRs retroativos |
+| `mapping` | `/mapear` | **Global:** assessment do repo (brownfield). **Focal:** módulo afetado antes/durante implementação → `## Contexto do módulo` |
 | `roadmap` | `/roadmap` | Agrupar features por contexto de domínio e escrever o `specs/BACKLOG.md` organizado |
 
 **Skills do ciclo SDD (por feature)**
@@ -273,7 +389,7 @@ Skills são acionadas por comandos naturais ou `/nome`. Cada skill fica em sua p
 | Skill | Comando | Quando usar |
 |-------|---------|-------------|
 | `sdd-init` | `"Nova feature: …"` | Criar spec (`requirements.md`, `design.md`, `tasks.md`) para uma feature do backlog |
-| `sdd-implement` | `"Implemente a feature NNN"` | Executar `tasks.md` após aprovação humana |
+| `sdd-implement` | `"Implemente a feature NNN"` | `/mapear` focal (se faltou) → tasks após aprovação humana |
 | `sdd-review` | `"Revise a feature NNN"` | Coordena **QA + reviewer**; consolida veredito final |
 
 **Fluxo entre skills:**
@@ -290,7 +406,7 @@ Scripts shell registrados em `.claude/settings.json`. Rodam sem intervenção ma
 
 | Hook | Arquivo | Evento | Função |
 |------|---------|--------|--------|
-| Session start | `session-start.sh` | Início de sessão | Exibe feature ativa, status de todas as features e próximos passos |
+| Session start | `session-start.sh` | Início de sessão | Bootstrap de memória, feature ativa, status das features, resumo de contexto |
 | Pre tool use | `pre-tool-use.sh` | Antes de Edit/Write | Bloqueia paths protegidos sem aprovação persistida e válida |
 
 **Como o hook valida:**
@@ -300,13 +416,25 @@ Scripts shell registrados em `.claude/settings.json`. Rodam sem intervenção ma
 3. Permite código apenas em `approved`/`in_progress`
 4. Recalcula o digest; mudança na spec invalida a aprovação
 
-**Controles determinísticos:**
+**Controles determinísticos (`.sdd/sdd.py`):**
 
 ```bash
+# SDD
 python3 .sdd/sdd.py validate 001-user-auth
 python3 .sdd/sdd.py approve 001-user-auth --by "nome-ou-email"
+python3 .sdd/sdd.py digest 001-user-auth
+
+# Memória de sessão
+python3 .sdd/sdd.py session bootstrap
+python3 .sdd/sdd.py session context
+python3 .sdd/sdd.py session status
+python3 .sdd/sdd.py session checkpoint
+
+# Testes do harness
 python3 -m unittest discover -s tests/harness -v
 ```
+
+No Windows, substitua `python3` por `py -3` se necessário.
 
 **Desligar temporariamente** (bootstrap inicial):
 
@@ -326,19 +454,30 @@ atualizam ao fechar features.
 | `decision-log.md` | ADRs — decisões arquiteturais imutáveis |
 | `learned-lessons.md` | Lições datadas descobertas durante implementação |
 | `project-glossary.md` | Termos do domínio para alinhar specs e código |
+| `session_manager.py` | Classe `SessionManager` — memória curta/longa |
+| `checkpoints/` | Arquivos arquivados após checkpoint (gitignored) |
 
 ---
 
 #### `.claude/session-context/` — Memória curta
 
-Estado da sessão corrente. A pasta é gitignored (exceto `.gitkeep`).
+Estado da sessão corrente. Gitignored (exceto `_templates/` e `.gitkeep`).
+Gerido por `SessionManager` — ver ADR-001 e `memory/memory.md`.
 
-| Arquivo | Função |
-|---------|--------|
-| `active-feature` | Uma linha com o ID da feature ativa — lida pelo hook SDD |
-| `next-steps.md` | Próximas ações recomendadas pelo `leader` |
-| `progress.md` | Plano vivo da sessão |
-| `decisions.md` | Decisões tomadas nesta sessão |
+| Arquivo / pasta | Função |
+|-----------------|--------|
+| `metadata.json` | ID da sessão, tokens estimados, histórico de checkpoints |
+| `global/working.md` | Foco e notas globais da sessão |
+| `features/<id>/context.md` | Contexto escopado à feature ativa |
+| `active-feature` | Uma linha com o ID — lida pelo hook SDD |
+| `next-steps.md`, `decisions.md`, `progress.md` | Plano vivo (compatível com hooks legados) |
+
+Comandos: `python3 .sdd/sdd.py session bootstrap|context|status|checkpoint`
+
+#### `.claude/knowledge/checkpoints/` — Memória longa (arquivos)
+
+Conteúdo arquivado após checkpoint quando a sessão excede o limiar de tokens
+(`sessionMemory.tokenThreshold` em `.sdd/config.json`). Gitignored (exceto `.gitkeep`).
 
 ---
 
@@ -362,45 +501,46 @@ Também exporta `SDD_ENFORCE=true` por padrão.
 
 ### Ciclo de funcionamento
 
-**Fase 1 — Início de projeto** (rode uma vez por projeto)
+**Fase 1 — Início de projeto** (uma vez)
 
-```
-1. claude                          → abre sessão na raiz do projeto
-        │
-        ▼
-2. session-start.sh                → mostra feature ativa + status das features
-        │
-        ▼
-3. /kickoff                        → detecta greenfield ou brownfield
-        │   greenfield: Lean Inception (visão, MVP, 5 eixos técnicos)
-        │   brownfield: aciona /mapear → lê código, infere contextos, gap analysis
-        ▼
-4. /roadmap                        → agrupa features por bounded context
-        │                              escreve specs/BACKLOG.md organizado
-        ▼
-5. Constituição salva              → CLAUDE.md, .sdd/config.json, assessment.md
+```mermaid
+flowchart TD
+    S1["claude"] --> S2["session-start.sh\nmemória + status"]
+    S2 --> S3["/kickoff"]
+    S3 --> S4{Brownfield?}
+    S4 -->|Sim| S5["/mapear global"]
+    S4 -->|Não| S6["Lean Inception"]
+    S5 --> S7["/roadmap → BACKLOG.md"]
+    S6 --> S7
+    S7 --> S8["Constituição\nCLAUDE.md, config, assessment"]
 ```
 
 **Fase 2 — Ciclo SDD por feature** (repete para cada item do backlog)
 
+```mermaid
+flowchart TD
+    F1["sdd-init"] --> F2["spec em specs/features/NNN/"]
+    F2 --> F3["Revisão humana"]
+    F3 --> F4["Aprovado + sdd.py approve"]
+    F4 --> F5["sdd-implement"]
+    F5 --> F6["/mapear focal se necessário"]
+    F6 --> F7["tasks RED→GREEN→REFACTOR"]
+    F7 --> F8["sdd-review: QA + reviewer"]
+    F8 --> F9["leader: done"]
 ```
-6. "Nova feature: <título>"        → skill sdd-init
-        │                              cria specs/features/NNN-nome/
-        ▼
-7. Revise requirements/design/tasks → diga "Aprovado"
-        │
-        │                              leader persiste aprovação + digest
-        ▼
-8. "Implemente a feature NNN"      → skill sdd-implement
-        │                              pre-tool-use.sh libera src/
-        │                              implementer executa tasks.md [x]
-        ▼
-9. "Revise a feature NNN"          → skill sdd-review
-        │                              quality-assurance (funcionamento + paridade)
-        │                              reviewer (FNNN-R<n> ↔ @covers)
-        │                              ambos devem aprovar
-        ▼
-10. Leader valida verified/done    → status.json + BACKLOG atualizados
+
+Passo a passo (referência rápida):
+
+```
+1. session-start.sh          → bootstrap memória, feature ativa, status das features
+2. "Nova feature: …"         → sdd-init (brownfield: /mapear → design Contexto as-is)
+3. Revise spec               → "Aprovado" → leader: sdd.py approve --by "…"
+4. "Implemente feature NNN"  → sdd-implement
+       └─ /mapear focal     → progress/impl_<id>.md ## Contexto do módulo
+       └─ pre-tool-use.sh   → libera src/ só com digest válido
+       └─ implementer       → tasks [x], testes @covers
+5. "Revise feature NNN"      → sdd-review (QA ✅ + reviewer ✅)
+6. Leader                    → verified → done; limpar active-feature se encerrada
 ```
 
 | Você diz | Skill acionada | O que acontece |
@@ -408,12 +548,12 @@ Também exporta `SDD_ENFORCE=true` por padrão.
 | `/integracoes` | **integracoes** | Inventário de ferramentas + insumos read-first |
 | `/clarificar` | **clarificar** | Decisão ramificada → ADR |
 | `/kickoff` | **kickoff** | Entrevista ou mapeamento → constituição do projeto |
-| `/mapear` | **mapping** | Retrato do codebase → `docs/architecture/assessment.md` |
+| `/mapear` | **mapping** | **Global** → `assessment.md`. **Focal** → `## Contexto do módulo` em `progress/impl_<id>.md` |
 | `/roadmap` | **roadmap** | Features agrupadas por contexto → `specs/BACKLOG.md` |
-| `Nova feature: autenticação JWT` | **sdd-init** | Cria spec em `specs/features/001-.../` |
+| `Nova feature: autenticação JWT` | **sdd-init** | Cria spec; define `active-feature`; `session bootstrap` |
 | _(revise os 3 arquivos)_ | — | — |
-| `Aprovado` | — | Registra aprovador + digest e libera edição |
-| `Implemente a feature 001` | **sdd-implement** | Código + testes |
+| `Aprovado` | **leader** | `sdd.py approve --by "…"` — digest vincula spec à aprovação |
+| `Implemente a feature 001` | **sdd-implement** | `/mapear` focal → código + testes + `progress/impl_<id>.md` |
 | `Revise a feature 001` | **sdd-review** | QA + reviewer; veredito consolidado |
 | _(QA ✅ + Reviewer ✅)_ | **leader** | Valida `verified` e marca `done` |
 
@@ -450,7 +590,11 @@ claude
   "testCommand": "npm test",
   "buildCommand": "npm run build",
   "lintCommand": "npm run lint",
-  "sddValidationCommand": "python3 .sdd/sdd.py validate"
+  "sddValidationCommand": "python3 .sdd/sdd.py validate",
+  "sessionMemory": {
+    "enabled": true,
+    "tokenThreshold": 8000
+  }
 }
 ```
 
@@ -472,7 +616,10 @@ Documente skills instaladas e quando aplicá-las em `CLAUDE.md`.
 ## Documentação relacionada
 
 - [AGENTS.md](./AGENTS.md) — processo e subagentes
+- [CLAUDE.md](./CLAUDE.md) — contexto técnico, scripts Python e memória de sessão
 - [fluxoSdd.md](./fluxoSdd.md) — fluxo visual e mapa de pastas
+- [memory/memory.md](./memory/memory.md) — spec de memória curta/longa
+- [docs/architecture/adr/001-session-context.md](./docs/architecture/adr/001-session-context.md) — ADR memória de sessão
 - [.claude/skills/integracoes/SKILL.md](./.claude/skills/integracoes/SKILL.md) — skill `/integracoes`
 - [.claude/skills/clarificar/SKILL.md](./.claude/skills/clarificar/SKILL.md) — skill `/clarificar`
 - [.claude/skills/kickoff/SKILL.md](./.claude/skills/kickoff/SKILL.md) — skill `/kickoff` completa

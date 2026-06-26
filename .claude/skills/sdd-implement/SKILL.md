@@ -20,25 +20,27 @@ Executa a implementação de uma feature **com spec aprovada**.
 ## Passos
 
 1. **Confirme a feature ativa** em `.claude/session-context/active-feature`.
-2. **Leia** `requirements.md`, `design.md`, `tasks.md`, `CLAUDE.md` e
+2. **Carregue contexto de sessão** (se existir):
+   `python3 .sdd/sdd.py session context --feature <id>`
+3. **Leia** `requirements.md`, `design.md`, `tasks.md`, `CLAUDE.md` e
    `docs/architecture/assessment.md`.
-3. **`/mapear` focal (se faltou no sdd-init):** leia e execute
+4. **`/mapear` focal (se faltou no sdd-init):** leia e execute
    **`.claude/skills/mapping/SKILL.md`** nos arquivos que as tasks vão tocar +
    vizinhos imediatos. Registre em `progress/impl_<id>.md` → seção
    **`## Contexto do módulo`** (convenções, acoplamentos, efeitos colaterais).
-4. **Transicione** `status.json` para `in_progress` (atualize `updated`).
-5. **Crie** `progress/impl_<id>.md` com:
+5. **Transicione** `status.json` para `in_progress` (atualize `updated`).
+6. **Crie** `progress/impl_<id>.md` com:
    - `## Contexto do módulo` (do `/mapear` focal)
    - tabela Task ↔ FNNN-R\<n\> ↔ RED/GREEN/REFACTOR ↔ arquivos/testes
-6. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
+7. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
    - Para cada task, execute **RED → GREEN → REFACTOR**.
    - Confirme a falha esperada antes do código.
    - Implemente o mínimo, refatore com a suíte verde, marque `[x]` e registre.
    - Use `@covers FNNN-R<n>` nos testes.
-7. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
+8. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
    lints introduzidos.
-8. **Valide** com `python3 .sdd/sdd.py validate <id>`.
-9. **Atualize** `progress/current.md` com o andamento.
+9. **Valide** com `python3 .sdd/sdd.py validate <id>`.
+10. **Atualize** `progress/current.md` com o andamento.
 
 ## Disciplina
 

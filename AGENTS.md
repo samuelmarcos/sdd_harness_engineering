@@ -20,7 +20,27 @@ Harness (veículo)                      SDD (processo)
 .claude/knowledge/  → memória longa    specs/features/*/tasks.md
 .claude/hooks/      → disciplina       specs/features/*/status.json
 session-context/    → memória curta    progress/
+checkpoints/        → arquivos pós-checkpoint (longo prazo)
 ```
+
+**Memória de sessão** (infra core — ver `memory/memory.md` e ADR-001):
+
+| Nível | Local | Conteúdo |
+|-------|-------|----------|
+| Curto prazo | `.claude/session-context/` | `global/working.md`, `features/<id>/context.md`, `metadata.json` |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Arquivos arquivados após checkpoint |
+| Lições | `.claude/knowledge/learned-lessons.md` | Aprendizados persistentes |
+
+Comandos (`SessionManager` via `.sdd/sdd.py`):
+
+```bash
+python3 .sdd/sdd.py session bootstrap    # início de sessão (hook session-start)
+python3 .sdd/sdd.py session context    # contexto para injetar no prompt
+python3 .sdd/sdd.py session status     # tokens / checkpoints
+python3 .sdd/sdd.py session checkpoint # arquiva quando ≥ limiar
+```
+
+Config: `.sdd/config.json` → `sessionMemory` (feature flag `enabled`).
 
 **Skills canônicas** (tudo em `.claude/skills/`):
 

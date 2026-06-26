@@ -4,6 +4,7 @@
 import argparse
 import datetime as dt
 import hashlib
+import importlib.util
 import json
 import re
 import sys
@@ -494,6 +495,83 @@ def command_approve(args):
     return 0
 
 
+def read_harness_config(root):
+    path = root / ".sdd" / "config.json"
+    if not path.is_file():
+        return {}
+    return read_json(path)
+
+
+def load_session_manager(root):
+    module_path = root / ".claude" / "knowledge" / "session_manager.py"
+    if not module_path.is_file():
+        raise FileNotFoundError(str(module_path))
+    spec = importlib.util.spec_from_file_location("session_manager", module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.SessionManager(root, read_harness_config(root))
+
+
+def command_session_bootstrap(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session bootstrap falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada (sessionMemory.enabled=false).")
+        return 0
+    metadata = manager.bootstrap()
+    archived = manager.checkpoint_all(force=False)
+    if archived:
+        print("Checkpoint automatico — {} arquivo(s) arquivados.".format(len(archived)))
+    print("OK Session bootstrap — {}".format(metadata.get("sessionId", "(unknown)")))
+    return 0
+
+
+def command_session_status(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session status falhou: {}".format(error), file=sys.stderr)
+        return 1
+    print(manager.status_report())
+    return 0
+
+
+def command_session_checkpoint(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session checkpoint falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada.")
+        return 0
+    manager.bootstrap()
+    archived = manager.checkpoint_all(force=args.force)
+    if not archived:
+        print("Nenhum checkpoint necessário (limiar não atingido).")
+        return 0
+    print("Checkpoint — arquivos arquivados:")
+    for path in archived:
+        print("- " + path)
+    return 0
+
+
+def command_session_context(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session context falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        return 0
+    manager.bootstrap()
+    print(manager.get_merged_context(args.feature))
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description="Controles determinísticos SDD")
     parser.add_argument("--root", type=Path, default=Path.cwd())
@@ -515,6 +593,25 @@ def build_parser():
     approve_parser.add_argument("feature")
     approve_parser.add_argument("--by", dest="approved_by", required=True)
     approve_parser.set_defaults(handler=command_approve)
+
+    session_parser = subparsers.add_parser("session")
+    session_sub = session_parser.add_subparsers(dest="session_command", required=True)
+
+    bootstrap_parser = session_sub.add_parser("bootstrap")
+    bootstrap_parser.set_defaults(handler=command_session_bootstrap)
+
+    status_parser = session_sub.add_parser("status")
+    status_parser.set_defaults(handler=command_session_status)
+
+    checkpoint_parser = session_sub.add_parser("checkpoint")
+    checkpoint_parser.add_argument(
+        "--force", action="store_true", help="arquiva mesmo abaixo do limiar"
+    )
+    checkpoint_parser.set_defaults(handler=command_session_checkpoint)
+
+    context_parser = session_sub.add_parser("context")
+    context_parser.add_argument("--feature", default=None)
+    context_parser.set_defaults(handler=command_session_context)
     return parser
 
 

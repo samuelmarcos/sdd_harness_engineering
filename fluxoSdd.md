@@ -85,8 +85,8 @@ Exemplo de referência: `specs/features/000-exemplo-sdd/`.
 | `.claude/skills/sdd-implement/` | Implementar `tasks.md` |
 | `.claude/skills/sdd-review/` | Coordena QA + reviewer; feature só fecha com ambos ✅ |
 | `.claude/hooks/` | `pre-tool-use.sh` (disciplina) + `session-start.sh` (contexto) |
-| `.claude/knowledge/` | Memória longa — glossário, lições, ADRs |
-| `.claude/session-context/` | Memória curta — feature ativa, próximos passos |
+| `.claude/knowledge/` | Memória longa — glossário, lições, ADRs, `session_manager.py`, `checkpoints/` |
+| `.claude/session-context/` | Memória curta — `global/`, `features/<id>/`, `metadata.json`, feature ativa |
 | `.claude/settings.json` | Permissões e registro de hooks |
 
 ---
@@ -101,6 +101,7 @@ Harness (veículo)                      SDD (processo)                    Códig
 .claude/knowledge/  → memória longa    specs/features/*/tasks.md
 .claude/hooks/      → disciplina       specs/features/*/status.json      progress/
 session-context/    → memória curta    progress/
+checkpoints/        → pós-checkpoint (longo prazo)
 ```
 
 ---

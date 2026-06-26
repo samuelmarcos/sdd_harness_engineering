@@ -3,5 +3,13 @@
   "testCommand": "npm test",
   "buildCommand": "npm run build",
   "lintCommand": "npm run lint",
-  "sddValidationCommand": "python3 .sdd/sdd.py validate"
+  "sddValidationCommand": "python3 .sdd/sdd.py validate",
+  "sessionMemory": {
+    "enabled": true,
+    "tokenThreshold": 8000,
+    "approxCharsPerToken": 4,
+    "persistence": "json",
+    "longTermDir": ".claude/knowledge/checkpoints",
+    "summaryMaxLines": 40
+  }
 }

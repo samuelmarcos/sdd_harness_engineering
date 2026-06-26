@@ -18,6 +18,9 @@ autorizado a editar diretórios de código protegidos (padrão: `src/`).
    `pre-tool-use.sh` vai bloquear de qualquer forma).
 3. `approval.specRevision` coincide com o digest atual da spec.
 4. Você leu os 3 arquivos da spec **e** o `CLAUDE.md`.
+5. Se `design.md` declara `## Dependências de sessão`, leia também
+   `.claude/session-context/features/<id>/context.md` ou rode
+   `python3 .sdd/sdd.py session context --feature <id>`.
 
 ## Fluxo
 
