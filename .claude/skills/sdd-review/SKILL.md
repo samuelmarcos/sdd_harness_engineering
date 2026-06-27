@@ -17,29 +17,59 @@ com responsabilidades distintas — ambos precisam aprovar para a feature fechar
 
 - "Revise a feature \<id\>"
 - Após `sdd-implement` concluir todas as tasks.
+- Quando o humano informar que **QA validou** — confirme que o relatório foi
+  persistido; se não existir, reexecute o fluxo automático abaixo.
+
+## Persistência automática de relatórios (obrigatória)
+
+Cada agente de revisão **deve**, na mesma execução em que emite o veredito:
+
+1. **Write** → `specs/features/<id>/reviews/<tipo>-<YYYYMMDD-HHMMSS>.md`
+2. **Bash** → registrar no harness (atualiza `status.json`):
+
+```bash
+python3 .sdd/sdd.py review record <id> \
+  --kind qa|traceability \
+  --verdict approved|changes_requested \
+  --report reviews/<arquivo>.md
+```
+
+3. **Bash** → `python3 .sdd/sdd.py validate <id>`
+
+> **Nunca** peça ao humano ou ao `leader` para criar o arquivo em `reviews/` manualmente.
+> **Nunca** edite `status.json` à mão — use somente `review record`.
+
+Transições aplicadas por `review record`:
+
+| `--kind` | `--verdict` | `status.json` → |
+|----------|-------------|-----------------|
+| `qa` | `approved` | `in_progress`/`approved` → `in_review` |
+| `qa` | `changes_requested` | `changes_requested` |
+| `traceability` | `approved` (com QA ✅) | `in_review` → `verified` |
+| `traceability` | `changes_requested` | `changes_requested` |
 
 ## Passos
 
 1. **Leia** `requirements.md`, `tasks.md`, `progress/impl_<id>.md`, `design.md` e o código.
 
-2. **Mude o status para `in_review`** e rode
-   `python3 .sdd/sdd.py validate <id>`.
-
-3. **Acione o agente `quality-assurance`**:
+2. **Acione o agente `quality-assurance`** (fluxo automático acima):
    - Roda build, lint e testes de `.sdd/config.json` e reporta saída real.
    - Verifica **paridade de resultados**: testes pré-existentes, corpus/baselines quando
      aplicável, delta intencional documentado em `requirements.md` / `design.md`.
    - Verifica conformidade com `design.md` (decisões técnicas, camadas, naming).
    - Verifica conformidade com `docs/architecture/assessment.md` (bounded contexts, restrições).
-   - Persiste o relatório em `specs/features/<id>/reviews/qa-*.md`.
+   - **Write** relatório + **`review record --kind qa`**.
 
-4. **Acione o agente `reviewer`**:
+3. **Acione o agente `reviewer`** (fluxo automático acima):
    - Monta a matriz de rastreabilidade FNNN-R\<n\> ↔ Task ↔ Teste ↔ Código.
    - Verifica escopo (sem extras além do `design.md`) e código morto.
-   - Persiste o relatório em `specs/features/<id>/reviews/traceability-*.md`.
+   - **Write** relatório + **`review record --kind traceability`**.
 
-5. **Consolide os relatórios**, registre paths/resultados em `status.json`,
-   rode novamente o validador e emita o veredito final.
+4. **Consolide** — confira que `status.json` aponta para os dois relatórios;
+   rode `validate` novamente e emita o veredito final.
+
+5. Se **QA ✅ + Reviewer ✅** → instrua o `leader` a marcar `done`, atualizar
+   `BACKLOG.md` e registrar aprendizados.
 
 ## Matriz de rastreabilidade (obrigatória)
 
@@ -52,19 +82,17 @@ com responsabilidades distintas — ambos precisam aprovar para a feature fechar
 
 ## Veredito final
 
-A feature só recebe **APROVADO** se **ambos** os agentes aprovarem.
+A feature só recebe **APROVADO** se **ambos** os agentes aprovarem **e** os relatórios
+estiverem em `reviews/` com `review record` executado.
 
-- ✅ **APROVADO** (QA ✅ + Reviewer ✅) → instrua o `leader` a marcar
-  `status.json = verified`; após validação final, marcar `done`, atualizar
-  `BACKLOG.md` e registrar aprendizados em
-  `.claude/knowledge/learned-lessons.md`.
-- ❌ **REPROVADO** → consolide as falhas dos dois relatórios por origem
-  (QA / Rastreabilidade) e marque `changes_requested`. Se a spec não mudou, o
-  `leader` retorna para `in_progress`; se requirements/design/tasks mudarem,
-  retorna para `awaiting_approval` e exige nova aprovação.
+- ✅ **APROVADO** (QA ✅ + Reviewer ✅) → `leader` marca `done`, atualiza
+  `BACKLOG.md` e `.claude/knowledge/learned-lessons.md`.
+- ❌ **REPROVADO** → consolide falhas; `leader` retorna a `in_progress` ou
+  `awaiting_approval` se a spec mudar.
 
 ## Regras
 
-- Não edite código. Em `status.json`, altere apenas transições de revisão e
-  resultados/paths dos relatórios.
+- Não edite código de produção.
+- Relatórios e `status.json` (via CLI) são responsabilidade dos agentes QA/reviewer —
+  não do humano.
 - Evidências concretas (arquivo:linha) em cada item reprovado.

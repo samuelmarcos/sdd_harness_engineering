@@ -41,6 +41,11 @@ Executa a implementação de uma feature **com spec aprovada**.
    lints introduzidos.
 9. **Valide** com `python3 .sdd/sdd.py validate <id>`.
 10. **Atualize** `progress/current.md` com o andamento.
+11. **Dispare revisão automática** — acione `quality-assurance` (ou skill
+    `sdd-review` passo 2). O QA **deve** escrever
+    `specs/features/<id>/reviews/qa-*.md` e rodar
+    `python3 .sdd/sdd.py review record <id> --kind qa --verdict approved --report ...`
+    **sem** esperar pedido do humano.
 
 ## Disciplina
 
@@ -53,4 +58,5 @@ Executa a implementação de uma feature **com spec aprovada**.
 
 - Todas as tasks `[x]`, testes verdes.
 - Resumo dos arquivos tocados (do `progress/impl_<id>.md`).
-- Recomende rodar a skill `sdd-review` (aciona `quality-assurance` + `reviewer`).
+- QA deve persistir relatório automaticamente (`reviews/` + `review record`).
+- Se QA já aprovou, acione o `reviewer` para traceability.

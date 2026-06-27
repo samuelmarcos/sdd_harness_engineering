@@ -419,6 +419,49 @@ def validate_feature(root, feature_id):
     return errors
 
 
+def record_review(root, feature_id, kind, verdict, report):
+    if kind not in {"qa", "traceability"}:
+        raise ValueError("kind deve ser qa ou traceability")
+    if verdict not in {"approved", "changes_requested"}:
+        raise ValueError("verdict deve ser approved ou changes_requested")
+
+    feature_path = feature_dir(root, feature_id)
+    report_norm = report.replace("\\", "/").lstrip("/")
+    if not report_norm.startswith("reviews/"):
+        report_norm = "reviews/" + Path(report_norm).name
+
+    report_path = (feature_path / report_norm).resolve(strict=False)
+    reviews_dir = (feature_path / "reviews").resolve(strict=False)
+    if not is_within(report_path, reviews_dir):
+        raise ValueError(
+            "report deve estar em specs/features/{}/reviews/".format(feature_id)
+        )
+    if not report_path.is_file():
+        raise ValueError("arquivo de relatório não encontrado: {}".format(report_norm))
+
+    status_path = feature_path / "status.json"
+    status = read_json(status_path)
+    reviews = status.setdefault("reviews", {})
+    reviews[kind] = {"status": verdict, "report": report_norm}
+
+    today = dt.date.today().isoformat()
+    status["updated"] = today
+    current = status.get("status")
+
+    if verdict == "changes_requested":
+        status["status"] = "changes_requested"
+    elif verdict == "approved":
+        if kind == "qa" and current in {"approved", "in_progress"}:
+            status["status"] = "in_review"
+        elif kind == "traceability":
+            qa_status = reviews.get("qa", {}).get("status")
+            if qa_status == "approved" and current in {"in_review", "in_progress"}:
+                status["status"] = "verified"
+
+    write_json(status_path, status)
+    return report_norm
+
+
 def approve_feature(root, feature_id, approved_by):
     if not approved_by.strip():
         raise ValueError("identidade do aprovador não pode ser vazia")
@@ -492,6 +535,26 @@ def command_approve(args):
         print("❌ Aprovação não registrada: {}".format(error), file=sys.stderr)
         return 1
     print("✅ Spec aprovada e vinculada ao digest atual — {}".format(args.feature))
+    return 0
+
+
+def command_review_record(args):
+    try:
+        report = record_review(
+            args.root,
+            args.feature,
+            args.kind,
+            args.verdict,
+            args.report,
+        )
+    except (OSError, ValueError) as error:
+        print("❌ Review não registrado: {}".format(error), file=sys.stderr)
+        return 1
+    print(
+        "✅ Review {} ({}) registrado — {} → {}".format(
+            args.kind, args.verdict, args.feature, report
+        )
+    )
     return 0
 
 
@@ -593,6 +656,35 @@ def build_parser():
     approve_parser.add_argument("feature")
     approve_parser.add_argument("--by", dest="approved_by", required=True)
     approve_parser.set_defaults(handler=command_approve)
+
+    review_parser = subparsers.add_parser(
+        "review",
+        help="registrar relatório de revisão (QA ou traceability)",
+    )
+    review_sub = review_parser.add_subparsers(dest="review_command", required=True)
+    record_parser = review_sub.add_parser(
+        "record",
+        help="persiste reviews/*.md e atualiza status.json",
+    )
+    record_parser.add_argument("feature")
+    record_parser.add_argument(
+        "--kind",
+        required=True,
+        choices=["qa", "traceability"],
+        help="tipo de revisão",
+    )
+    record_parser.add_argument(
+        "--verdict",
+        required=True,
+        choices=["approved", "changes_requested"],
+        help="resultado da revisão",
+    )
+    record_parser.add_argument(
+        "--report",
+        required=True,
+        help="caminho relativo em specs/features/<id>/ (ex: reviews/qa-20260101-120000.md)",
+    )
+    record_parser.set_defaults(handler=command_review_record)
 
     session_parser = subparsers.add_parser("session")
     session_sub = session_parser.add_subparsers(dest="session_command", required=True)

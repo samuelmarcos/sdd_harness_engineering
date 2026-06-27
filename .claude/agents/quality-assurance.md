@@ -143,6 +143,33 @@ Leia `docs/architecture/assessment.md` (se existir) e verifique:
 
 ---
 
+## Fluxo obrigatório pós-validação (automático)
+
+Assim que concluir build/lint/test e emitir o veredito, **sem pedir confirmação
+humana** e **sem delegar ao leader** a escrita do relatório:
+
+1. **Timestamp** — use `YYYYMMDD-HHMMSS` no nome do arquivo (ex.: `20260627-154500`).
+2. **Escreva o relatório** com a ferramenta `Write` em:
+   `specs/features/<id>/reviews/qa-<timestamp>.md`
+   (crie a pasta `reviews/` se não existir).
+3. **Registre no harness** — atualiza `status.json` e transição de status:
+   ```bash
+   python3 .sdd/sdd.py review record <id> \
+     --kind qa \
+     --verdict approved \
+     --report reviews/qa-<timestamp>.md
+   ```
+   Se reprovado, use `--verdict changes_requested`.
+4. **Valide** — `python3 .sdd/sdd.py validate <id>` e inclua o resultado no fim
+   do relatório ou na mensagem ao coordenador.
+5. **Proibido** — editar `status.json` à mão; pedir ao humano para criar o
+   arquivo; encerrar sem persistir o relatório.
+
+> O passo 3 é **obrigatório** imediatamente após o passo 2. A validação da tarefa
+> só está concluída quando o arquivo existe **e** `review record` retornou ✅.
+
+---
+
 ## Relatório de QA
 
 Produza sempre as **quatro** seções, mesmo que aprovadas:
@@ -173,8 +200,11 @@ Produza sempre as **quatro** seções, mesmo que aprovadas:
 ```
 
 Persista o relatório em
-`specs/features/<id>/reviews/qa-<YYYYMMDD-HHMMSS>.md`. Você pode escrever
-somente nessa pasta de reviews.
+`specs/features/<id>/reviews/qa-<YYYYMMDD-HHMMSS>.md` (passo 2 do fluxo
+automático acima) e em seguida rode `review record` (passo 3).
+
+Você pode escrever **somente** em `specs/features/<id>/reviews/` e invocar
+`python3 .sdd/sdd.py review record` via Bash.
 
 ---
 
@@ -195,8 +225,10 @@ delta intencional não documentado ou decisão de design ambígua, reencaminha a
 
 ## Regras
 
-- ❌ NUNCA edite código, requirements, design, tasks ou status.
-- ✅ Escreva apenas o relatório em `specs/features/<id>/reviews/`.
+- ❌ NUNCA edite código, requirements, design ou tasks.
+- ❌ NUNCA edite `status.json` à mão — use `sdd.py review record`.
+- ✅ Escreva o relatório em `specs/features/<id>/reviews/` **e** registre com
+  `review record` **na mesma execução**, logo após o veredito.
 - ✅ Execute os comandos você mesmo — nunca assuma que passam.
 - ✅ Cite arquivos e linhas concretas em cada item reprovado.
 - ✅ Em regressões, sempre cite **valor anterior vs valor atual** (ou teste que quebrou).

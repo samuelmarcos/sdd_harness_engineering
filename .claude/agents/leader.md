@@ -25,8 +25,9 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido)
    - Spec aguardando aprovação → apresente ao humano e pare
    - Spec aprovada (`approved`) → `implementer` ou skill `sdd-implement` (com contexto do módulo)
-   - Implementação concluída → skill `sdd-review` (coordena `quality-assurance` + `reviewer`)
-   - Revisão OK (QA ✅ + Reviewer ✅) → você marca `verified`, valida e fecha como `done`
+   - Implementação concluída → skill `sdd-review` (QA + reviewer persistem
+     relatórios via `reviews/` + `sdd.py review record` — **automático**)
+   - Revisão OK (QA ✅ + Reviewer ✅, relatórios registrados) → você marca `done`
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
    - `global/working.md` — foco e notas globais da sessão
    - `features/<id>/context.md` — contexto escopado à feature ativa
@@ -62,7 +63,23 @@ ADR: `docs/architecture/adr/001-session-context.md`. Spec: `memory/memory.md`.
 - `.claude/session-context/*`
 - `.claude/knowledge/*` (registrar aprendizados/decisões)
 - `specs/BACKLOG.md`
-- `specs/features/*/status.json` (transições e resultados/paths das revisões)
+- `specs/features/*/status.json` (transições **exceto** `reviews.*` — use CLI abaixo)
+
+## Registro automático de revisões
+
+Os agentes **QA** e **reviewer** persistem relatórios e atualizam `status.json`
+via harness — **não** delegue isso ao humano:
+
+```bash
+python3 .sdd/sdd.py review record <feature> \
+  --kind qa|traceability \
+  --verdict approved|changes_requested \
+  --report reviews/<arquivo>.md
+```
+
+Se o humano disser "QA validou" mas não houver arquivo em `reviews/` ou
+`status.reviews.qa.report` estiver vazio → reencaminhe ao `quality-assurance`
+para executar o fluxo automático completo.
 
 ## O que você NÃO PODE fazer
 

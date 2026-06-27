@@ -38,7 +38,14 @@ python3 .sdd/sdd.py session bootstrap    # início de sessão (hook session-star
 python3 .sdd/sdd.py session context    # contexto para injetar no prompt
 python3 .sdd/sdd.py session status     # tokens / checkpoints
 python3 .sdd/sdd.py session checkpoint # arquiva quando ≥ limiar
+python3 .sdd/sdd.py approve <feature> --by "<humano>"
+python3 .sdd/sdd.py review record <feature> --kind qa|traceability \
+  --verdict approved|changes_requested --report reviews/<arquivo>.md
+python3 .sdd/sdd.py validate <feature>
 ```
+
+> Após QA ou reviewer validar: **Write** em `specs/features/<id>/reviews/` **e**
+> imediatamente `review record` — persiste `status.json` sem edição manual.
 
 Config: `.sdd/config.json` → `sessionMemory` (feature flag `enabled`).
 
@@ -107,7 +114,7 @@ Config: `.sdd/config.json` → `sessionMemory` (feature flag `enabled`).
 | 2. Especificação | requirements, design, tasks | `sdd-init` → `spec_author` | → `awaiting_approval` |
 | 3. Aprovação | leitura + "aprovado" persistido | **Humano** + `leader` | → `approved` |
 | 4. Implementação | tasks `[x]`, código, `progress/` | `sdd-implement` | → `in_progress` |
-| 5. Revisão | relatórios persistidos | `sdd-review` | → `in_review` |
+| 5. Revisão | relatórios em `reviews/` + `review record` | `quality-assurance`, `reviewer` | → `in_review` / `verified` |
 | 6. Fechamento | QA ✅ + reviewer ✅ | `leader` | `verified` → `done` |
 
 ---
@@ -122,7 +129,7 @@ spec mudou depois da aprovação.
 
 1. Prelude: `/integracoes` (opc.) → `/kickoff` → `/mapear` → `/roadmap`
 2. Por feature: `sdd-init` → humano **aprovado** → aprovação persistida →
-   `sdd-implement` → `sdd-review`
+   `sdd-implement` → `sdd-review` (relatórios **automáticos** em `reviews/`)
 3. Decisão ramificada mid-spec: `/clarificar` → ADR → retomar spec
 
 ---
