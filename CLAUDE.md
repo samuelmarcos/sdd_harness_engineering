@@ -141,7 +141,7 @@ python3 -m unittest discover -s tests/harness -v
 - Hook `session-start.sh` roda `session bootstrap` no início de cada sessão.
 - Limiar de tokens: `sessionMemory.tokenThreshold` em `.sdd/config.json`.
 - Desativar: `"sessionMemory": { "enabled": false }`.
-- Spec e ADR: `memory/memory.md`, `docs/architecture/adr/001-session-context.md`.
+- Spec e ADR: `docs/architecture/adr/001-session-context.md`.
 
 ---
 

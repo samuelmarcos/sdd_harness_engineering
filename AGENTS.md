@@ -23,7 +23,7 @@ session-context/    → memória curta    progress/
 checkpoints/        → arquivos pós-checkpoint (longo prazo)
 ```
 
-**Memória de sessão** (infra core — ver `memory/memory.md` e ADR-001):
+**Memória de sessão** (infra core — ver ADR-001 em `docs/architecture/adr/001-session-context.md`):
 
 | Nível | Local | Conteúdo |
 |-------|-------|----------|
@@ -71,6 +71,17 @@ Config: `.sdd/config.json` → `sessionMemory` (feature flag `enabled`).
 /integracoes (opcional) → /kickoff → /mapear (brownfield) → /clarificar (se ramificar) → /roadmap
 ```
 
+### `/mapear` global vs focal
+
+| Tipo | Quando | Escopo | Saída |
+|------|--------|--------|-------|
+| **Global** | Kickoff brownfield, antes de specs | Repositório ou bounded context | `docs/architecture/assessment.md` |
+| **Focal** | `sdd-init` ou `sdd-implement` (brownfield) | Arquivos que as tasks vão tocar + vizinhos | `design.md` → `## Contexto as-is` e/ou `progress/impl_<id>.md` → `## Contexto do módulo` |
+
+O **mapear focal** no `sdd-implement` é rede de segurança quando o módulo não foi documentado na spec — documenta convenções, acoplamentos e riscos **antes** de editar paths protegidos.
+
+Diagramas completos: **`README.md`** (seção *Fluxos principais*) e **`fluxoSdd.md`**.
+
 ---
 
 ## Os 5 Subagentes (em `.claude/agents/`)
@@ -113,7 +124,7 @@ Config: `.sdd/config.json` → `sessionMemory` (feature flag `enabled`).
 | 1. Descoberta | `specs/BACKLOG.md` | `/roadmap`, humano | → `pending` |
 | 2. Especificação | requirements, design, tasks | `sdd-init` → `spec_author` | → `awaiting_approval` |
 | 3. Aprovação | leitura + "aprovado" persistido | **Humano** + `leader` | → `approved` |
-| 4. Implementação | tasks `[x]`, código, `progress/` | `sdd-implement` | → `in_progress` |
+| 4. Implementação | tasks `[x]`, código, `progress/` + `/mapear` focal | `sdd-implement` | → `in_progress` |
 | 5. Revisão | relatórios em `reviews/` + `review record` | `quality-assurance`, `reviewer` | → `in_review` / `verified` |
 | 6. Fechamento | QA ✅ + reviewer ✅ | `leader` | `verified` → `done` |
 
@@ -152,7 +163,7 @@ spec mudou depois da aprovação.
 | "Preciso decidir arquitetura" | `/clarificar` → ADR |
 | "Nova feature: X" | `/mapear` focal (se BF) → `sdd-init` |
 | "Aprovado" | `leader` persiste aprovação + digest e libera `sdd-implement` |
-| "Implemente a feature NNN" | `sdd-implement` |
+| "Implemente a feature NNN" | `sdd-implement` (+ `/mapear` focal se Contexto do módulo ausente) |
 | "Revise a feature NNN" | `sdd-review` (QA + reviewer) |
 | "Status do projeto" | `leader` lê `status.json` + BACKLOG |
 
@@ -171,4 +182,4 @@ spec mudou depois da aprovação.
 ## Relação com `CLAUDE.md`
 
 `CLAUDE.md` é a **fonte de verdade técnica**. Subagentes e skills leem antes de
-especificar ou implementar. Guia visual: **`fluxoSdd.md`**. Specs: **`specs/README.md`**.
+especificar ou implementar. Guia visual: **`fluxoSdd.md`** e **`README.md`** (Fluxos principais). Specs: **`specs/README.md`**.

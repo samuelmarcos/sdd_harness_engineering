@@ -187,7 +187,8 @@ Se o projeto **já tem código** (não é greenfield puro):
 1. **`/mapear`** antes de `sdd-init` quando a feature toca paths protegidos e o módulo
    não está em `assessment.md`.
 2. **`design.md`** deve ter **`## Contexto as-is`** preenchido.
-3. **`sdd-implement`** registra **`## Contexto do módulo`** em `progress/impl_<id>.md`.
+3. **`sdd-implement`** registra **`## Contexto do módulo`** em `progress/impl_<id>.md`
+   via **`/mapear` focal** (arquivos das tasks + vizinhos) se ainda não existir.
 4. Decisão estrutural em aberto → **`/clarificar`** antes de fechar o design.
 
 ---
