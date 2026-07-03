@@ -101,6 +101,25 @@ class SessionManager:
         stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%d-%H%M%S")
         return "sess-{}-{}".format(stamp, uuid.uuid4().hex[:8])
 
+    def repair_metadata(self, metadata: dict[str, Any]) -> dict[str, Any]:
+        """Corrige placeholders de template e campos ausentes."""
+        session_id = str(metadata.get("sessionId", ""))
+        if not session_id or "YYYYMMDD" in session_id:
+            metadata["sessionId"] = self.new_session_id()
+        created = str(metadata.get("createdAt", ""))
+        if not created or "YYYY" in created:
+            metadata["createdAt"] = utc_now_iso()
+        metadata["updatedAt"] = utc_now_iso()
+        metadata["tokenThreshold"] = int(
+            metadata.get("tokenThreshold")
+            or self.config.get("tokenThreshold", DEFAULT_SESSION_MEMORY["tokenThreshold"])
+        )
+        metadata.setdefault("checkpoints", [])
+        metadata.setdefault("resumeStrategy", "summary")
+        metadata.setdefault("estimatedTokens", 0)
+        metadata.setdefault("activeFeature", None)
+        return metadata
+
     def bootstrap(self) -> dict[str, Any]:
         """Inicializa estrutura de session-context se ausente."""
         self.session_dir.mkdir(parents=True, exist_ok=True)
@@ -123,16 +142,8 @@ class SessionManager:
                     "checkpoints": [],
                     "resumeStrategy": "summary",
                 }
-            metadata["sessionId"] = metadata.get("sessionId") or self.new_session_id()
-            if "YYYYMMDD" in str(metadata.get("sessionId", "")):
-                metadata["sessionId"] = self.new_session_id()
-            metadata["createdAt"] = metadata.get("createdAt") or utc_now_iso()
-            if "YYYY" in str(metadata.get("createdAt", "")):
-                metadata["createdAt"] = utc_now_iso()
-            metadata["tokenThreshold"] = int(
-                self.config.get("tokenThreshold", DEFAULT_SESSION_MEMORY["tokenThreshold"])
-            )
-            self.write_json(self.metadata_path(), metadata)
+        metadata = self.repair_metadata(metadata)
+        self.write_json(self.metadata_path(), metadata)
 
         if not self.global_working_path().is_file():
             template = self.templates_dir / "global-working.template.md"
@@ -153,6 +164,56 @@ class SessionManager:
 
         self.refresh_token_estimate()
         return self.read_metadata()
+
+    def set_active_feature(self, feature_id: str) -> None:
+        """Define feature ativa e garante context.md escopado."""
+        if not re.match(r"^\d{3,}-[a-z0-9]+(?:-[a-z0-9]+)*$", feature_id):
+            raise ValueError("ID da feature inválido: {}".format(feature_id))
+        self.write_text(self.active_feature_path(), feature_id + "\n")
+        self.ensure_feature_context(feature_id)
+        metadata = self.repair_metadata(self.read_metadata() or {})
+        metadata["activeFeature"] = feature_id
+        self.write_json(self.metadata_path(), metadata)
+
+    def update_next_steps(self, content: str) -> None:
+        path = self.session_dir / "next-steps.md"
+        self.write_text(path, content.rstrip() + "\n")
+        self.refresh_token_estimate()
+
+    def append_task_progress(
+        self,
+        feature_id: str,
+        task_id: str,
+        note: str,
+        files: list[str] | None = None,
+    ) -> None:
+        """Registra conclusão parcial de task em features/<id>/context.md."""
+        path = self.ensure_feature_context(feature_id)
+        text = self.read_text(path)
+        stamp = utc_now_iso()
+        line = "- **{}** ({}): {}".format(task_id, stamp, note.strip())
+        if files:
+            line += " — arquivos: `{}`".format("`, `".join(files))
+        section = "## Estado de implementação"
+        if section in text:
+            text = text.rstrip() + "\n" + line + "\n"
+        else:
+            text = text.rstrip() + "\n\n" + section + "\n\n" + line + "\n"
+        self.write_text(path, text)
+        feature_meta_path = path.parent / "metadata.json"
+        feature_meta = (
+            self.read_json(feature_meta_path)
+            if feature_meta_path.is_file()
+            else {
+                "featureId": feature_id,
+                "requiresPersistence": True,
+                "resumeStrategy": "summary",
+            }
+        )
+        feature_meta["lastTask"] = task_id
+        feature_meta["updatedAt"] = stamp
+        self.write_json(feature_meta_path, feature_meta)
+        self.refresh_token_estimate()
 
     def get_active_feature(self) -> str | None:
         path = self.active_feature_path()

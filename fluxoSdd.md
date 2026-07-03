@@ -76,25 +76,32 @@ flowchart TD
 
 ## Memória de sessão
 
-Infraestrutura paralela ao SDD — ver ADR-001 em `docs/architecture/adr/001-session-context.md`.
+Infraestrutura paralela ao SDD — spec `memory/memory.md`, ADR `docs/architecture/adr/001-session-context.md`.
 
 ```mermaid
 flowchart TD
-    A["session-start.sh"] --> B["session bootstrap"]
+    A["session-start.sh\n(ou manual no Cursor)"] --> B["session bootstrap"]
     B --> C["session-context/\ncurto prazo"]
-    C --> D{Tokens ≥ limiar?}
-    D -->|Sim| E["checkpoint → checkpoints/"]
-    D -->|Não| F["session context"]
-    E --> F
+    C --> D["leader: sync-feature"]
+    D --> E["implementer: task-note\n(por task concluída)"]
+    E --> F{Tokens ≥ limiar?}
+    F -->|Sim| G["checkpoint → checkpoints/"]
+    F -->|Não| H["session context"]
+    G --> H
+    H --> I["progress/impl_id.md\n(versionado)"]
 ```
 
-| Nível | Pasta |
-|-------|-------|
-| Curto prazo | `.claude/session-context/` (`global/`, `features/<id>/`) |
-| Longo prazo | `.claude/knowledge/checkpoints/` |
-| Lições | `.claude/knowledge/learned-lessons.md` |
+| Nível | Pasta | Git |
+|-------|-------|-----|
+| Curto prazo | `.claude/session-context/` (`global/`, `features/<id>/`) | Ignorado (exceto `_templates/`) |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado |
+| Lições | `.claude/knowledge/learned-lessons.md` | Versionado |
+| Por task | `progress/impl_<id>.md` | Versionado |
 
-Comandos: `python3 .sdd/sdd.py session bootstrap|context|status|checkpoint`
+```bash
+python3 .sdd/sdd.py session bootstrap|context|sync-feature|task-note|status|checkpoint
+python3 -m unittest discover -s tests/harness -v
+```
 
 ---
 
@@ -159,8 +166,9 @@ Harness (veículo)                      SDD (processo)                    Códig
 .claude/skills/     → instruções       specs/features/*/design.md        tests/
 .claude/knowledge/  → memória longa    specs/features/*/tasks.md
 .claude/hooks/      → disciplina       specs/features/*/status.json      progress/
-session-context/    → memória curta    progress/
+session-context/    → memória curta (sync-feature, task-note)
 checkpoints/        → pós-checkpoint
+memory/memory.md    → spec operacional de memória
 ```
 
 ---

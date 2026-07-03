@@ -38,15 +38,22 @@ Mantenha (ou gere via `sdd-review`) a matriz no relatório consolidado:
 | F000-R2   | (FALTANDO)          | ❌  |
 ```
 
-## Comando de testes
+## Testes do harness (memória + guard SDD)
 
-Configure em `.sdd/config.json`:
+Validam `.sdd/sdd.py` e `SessionManager` — independentes do stack do projeto.
 
-```json
-{
-  "testCommand": "npm test",
-  "buildCommand": "npm run build",
-  "lintCommand": "npm run lint",
-  "sddValidationCommand": "python3 .sdd/sdd.py validate"
-}
+```bash
+python3 -m unittest discover -s tests/harness -v
+# Windows: py -3 -m unittest discover -s tests/harness -v
 ```
+
+| Arquivo | Cobertura |
+|---------|-----------|
+| `tests/harness/test_sdd.py` | guard, approve, validate, reviews |
+| `tests/harness/test_session_manager.py` | bootstrap, placeholders, checkpoint, task-note, sync-feature |
+
+Spec: `memory/memory.md`, ADR `docs/architecture/adr/001-session-context.md`.
+
+## Comando de testes do projeto
+
+Configure em `.sdd/config.json` (`testCommand`, `buildCommand`, `lintCommand`, `sddValidationCommand`).

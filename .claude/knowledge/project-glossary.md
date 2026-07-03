@@ -17,6 +17,8 @@
 | **/integracoes** | Skill read-first — inventário de ferramentas e insumos em `docs/integrations/inventory.md`. |
 | **/clarificar** | Sabatina para decisões ramificadas; saída em ADR ou `session-context/decisions.md`. |
 | **SessionManager** | Classe em `.claude/knowledge/session_manager.py` — curto prazo (`session-context/`) e checkpoints. |
+| **session sync-feature** | CLI — alinha `active-feature`, `next-steps.md` e `features/<id>/context.md`. |
+| **session task-note** | CLI — registra progresso por task em `features/<id>/context.md` (implementer). |
 | **Checkpoint** | Arquivamento automático em `.claude/knowledge/checkpoints/` quando tokens ≥ limiar. |
 | **Memória curta / longa** | Curta: sessão corrente (gitignored). Longa: checkpoints + `learned-lessons.md`. |
 

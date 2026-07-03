@@ -86,22 +86,28 @@ Roda em paralelo ao SDD — infraestrutura, não feature de produto.
 flowchart TD
     A["Início de sessão\nsession-start.sh"] --> B["sdd.py session bootstrap"]
     B --> C["session-context/\ncurto prazo"]
-    C --> D["global/working.md\nfeatures/id/context.md"]
-    D --> E{Tokens ≥ limiar?}
-    E -->|Sim| F["session checkpoint\n→ checkpoints/"]
-    E -->|Não| G["leader/implementer\nsession context"]
-    F --> H["Stub resumido +\narquivo completo em checkpoints/"]
-    H --> G
-    G --> I["learned-lessons.md\nmemória longa persistente"]
+    C --> D["leader: sync-feature"]
+    D --> E["global/working.md\nfeatures/id/context.md"]
+    E --> F["implementer: task-note\n(por task concluída)"]
+    F --> G{Tokens ≥ limiar?}
+    G -->|Sim| H["session checkpoint\n→ checkpoints/"]
+    G -->|Não| I["session context"]
+    H --> J["Stub + arquivo completo"]
+    J --> I
+    I --> K["progress/impl_id.md\n(versionado)"]
+    I --> L["learned-lessons.md"]
 ```
 
 | Nível | Pasta | Git |
 |-------|-------|-----|
-| Curto prazo | `.claude/session-context/` | Ignorado |
+| Curto prazo | `.claude/session-context/` | Ignorado (exceto `_templates/`) |
 | Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado |
 | Lições | `.claude/knowledge/learned-lessons.md` | Versionado |
+| Por task | `progress/impl_<id>.md` | Versionado |
 
 **Brownfield — layout antigo de session-context:** se o projeto já usava `progress.md` plano na raiz, rode uma vez `python3 .sdd/migrate_session_context.py --dry-run` antes do bootstrap. Projetos novos não precisam.
+
+> **Cursor:** execute `python3 .sdd/sdd.py session bootstrap` manualmente se o hook SessionStart não rodar.
 
 ---
 
@@ -426,9 +432,11 @@ python3 .sdd/sdd.py digest 001-user-auth
 
 # Memória de sessão
 python3 .sdd/sdd.py session bootstrap
-python3 .sdd/sdd.py session context
+python3 .sdd/sdd.py session sync-feature <id>
+python3 .sdd/sdd.py session task-note --feature <id> --task FNNN-T1 --note "..." [--files a,b]
+python3 .sdd/sdd.py session context [--feature <id>]
 python3 .sdd/sdd.py session status
-python3 .sdd/sdd.py session checkpoint
+python3 .sdd/sdd.py session checkpoint [--force]
 
 # Testes do harness
 python3 -m unittest discover -s tests/harness -v
@@ -472,7 +480,7 @@ Gerido por `SessionManager` — ver ADR-001 e `memory/memory.md`.
 | `active-feature` | Uma linha com o ID — lida pelo hook SDD |
 | `next-steps.md`, `decisions.md`, `progress.md` | Plano vivo (compatível com hooks legados) |
 
-Comandos: `python3 .sdd/sdd.py session bootstrap|context|status|checkpoint`
+Comandos: `python3 .sdd/sdd.py session bootstrap|context|sync-feature|task-note|status|checkpoint`
 
 #### `.claude/knowledge/checkpoints/` — Memória longa (arquivos)
 

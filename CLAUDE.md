@@ -93,6 +93,8 @@ Sem dependências externas. No Windows use `py -3` se `python3` não estiver no 
 | `approve <feature> --by "Nome"` | Persiste aprovação humana vinculada ao digest |
 | `session bootstrap` | Inicializa memória curta; checkpoint automático se ≥ limiar |
 | `session context [--feature ID]` | Contexto mesclado para leader/implementer |
+| `session sync-feature <id>` | Alinha active-feature, context.md e next-steps.md |
+| `session task-note --feature ID --task FNNN-T1 --note "..."` | Registra progresso por task |
 | `session status` | Tokens estimados, feature ativa, checkpoints |
 | `session checkpoint [--force]` | Arquiva memória curta em `checkpoints/` |
 
@@ -132,16 +134,17 @@ python3 -m unittest discover -s tests/harness -v
 
 ## Memória de sessão
 
-| Nível | Local | Conteúdo |
-|-------|-------|----------|
-| Curto prazo | `.claude/session-context/` | `metadata.json`, `global/working.md`, `features/<id>/context.md` |
-| Longo prazo | `.claude/knowledge/checkpoints/` | Arquivos arquivados após checkpoint |
-| Lições | `.claude/knowledge/learned-lessons.md` | Aprendizados persistentes |
+| Nível | Local | Git | Conteúdo |
+|-------|-------|-----|----------|
+| Curto prazo | `.claude/session-context/` | Ignorado (exceto `_templates/`) | `metadata.json`, `global/working.md`, `features/<id>/context.md` |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado | Arquivos arquivados após checkpoint |
+| Lições | `.claude/knowledge/learned-lessons.md` | Versionado | Aprendizados persistentes |
+| Por task | `progress/impl_<id>.md` | Versionado | Log detalhado + Contexto do módulo |
 
-- Hook `session-start.sh` roda `session bootstrap` no início de cada sessão.
-- Limiar de tokens: `sessionMemory.tokenThreshold` em `.sdd/config.json`.
-- Desativar: `"sessionMemory": { "enabled": false }`.
-- Spec e ADR: `docs/architecture/adr/001-session-context.md`.
+- Hook `session-start.sh` roda `session bootstrap` (Claude Code). **Cursor:** bootstrap manual.
+- `leader` → `session sync-feature`; `implementer` → `session task-note` por task.
+- Limiar: `sessionMemory.tokenThreshold` em `.sdd/config.json`. Desativar: `"enabled": false`.
+- Spec: `memory/memory.md` · ADR: `docs/architecture/adr/001-session-context.md`.
 
 ---
 

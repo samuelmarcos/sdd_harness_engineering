@@ -20,6 +20,8 @@ Executa a implementação de uma feature **com spec aprovada**.
 ## Passos
 
 1. **Confirme a feature ativa** em `.claude/session-context/active-feature`.
+   Sincronize com:
+   `python3 .sdd/sdd.py session sync-feature <id>`
 2. **Carregue contexto de sessão** (se existir):
    `python3 .sdd/sdd.py session context --feature <id>`
 3. **Leia** `requirements.md`, `design.md`, `tasks.md`, `CLAUDE.md` e
@@ -37,6 +39,8 @@ Executa a implementação de uma feature **com spec aprovada**.
    - Confirme a falha esperada antes do código.
    - Implemente o mínimo, refatore com a suíte verde, marque `[x]` e registre.
    - Use `@covers FNNN-R<n>` nos testes.
+   - **Após cada task**, persista contexto curto:
+     `python3 .sdd/sdd.py session task-note --feature <id> --task FNNN-T<n> --note "GREEN passou" --files path/a,path/b`
 8. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
    lints introduzidos.
 9. **Valide** com `python3 .sdd/sdd.py validate <id>`.

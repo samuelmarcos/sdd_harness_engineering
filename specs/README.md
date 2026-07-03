@@ -193,6 +193,25 @@ Se o projeto **já tem código** (não é greenfield puro):
 
 ---
 
+## Memória de sessão
+
+Spec: `memory/memory.md` · ADR: `docs/architecture/adr/001-session-context.md`
+
+| Nível | Pasta | Git |
+|-------|-------|-----|
+| Curto prazo | `.claude/session-context/` | Ignorado (exceto `_templates/`) |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado |
+| Por task | `progress/impl_<id>.md` | Versionado |
+
+```bash
+python3 .sdd/sdd.py session bootstrap|sync-feature|task-note|context|status|checkpoint
+python3 -m unittest discover -s tests/harness -v
+```
+
+> **Cursor:** rode `session bootstrap` manualmente se o hook SessionStart não executar.
+
+---
+
 ## Convenção de nomes
 
 `NNN-kebab-case` — número sequencial global + nome curto.

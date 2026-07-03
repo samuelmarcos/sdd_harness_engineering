@@ -40,6 +40,28 @@ class SessionManagerTest(unittest.TestCase):
         self.assertTrue(self.manager.metadata_path().is_file())
         self.assertTrue(self.manager.global_working_path().is_file())
 
+    def test_bootstrap_repairs_placeholder_session_id(self):
+        session_dir = self.root / ".claude" / "session-context"
+        session_dir.mkdir(parents=True, exist_ok=True)
+        (session_dir / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "sessionId": "sess-YYYYMMDD-HHMMSS",
+                    "createdAt": "YYYY-MM-DDTHH:MM:SSZ",
+                    "updatedAt": "YYYY-MM-DDTHH:MM:SSZ",
+                    "activeFeature": None,
+                    "estimatedTokens": 0,
+                    "tokenThreshold": 8000,
+                    "checkpoints": [],
+                    "resumeStrategy": "summary",
+                }
+            ),
+            encoding="utf-8",
+        )
+        metadata = self.manager.bootstrap()
+        self.assertNotIn("YYYYMMDD", metadata["sessionId"])
+        self.assertNotIn("YYYY", metadata["createdAt"])
+
     def test_feature_context_created_on_demand(self):
         self.manager.bootstrap()
         path = self.manager.ensure_feature_context("001-login")
@@ -81,6 +103,34 @@ class SessionManagerTest(unittest.TestCase):
         merged = self.manager.get_merged_context()
         self.assertIn("Foco", merged)
         self.assertIn("001-login", merged)
+
+    def test_append_task_progress_updates_context(self):
+        self.manager.bootstrap()
+        self.manager.append_task_progress(
+            "001-login",
+            "F001-T1",
+            "GREEN passou",
+            ["src/login.py"],
+        )
+        text = self.manager.get_feature_context("001-login")
+        self.assertIn("F001-T1", text)
+        self.assertIn("src/login.py", text)
+        feature_meta = (
+            self.root
+            / ".claude"
+            / "session-context"
+            / "features"
+            / "001-login"
+            / "metadata.json"
+        )
+        self.assertEqual(json.loads(feature_meta.read_text())["lastTask"], "F001-T1")
+
+    def test_set_active_feature_syncs_metadata(self):
+        self.manager.bootstrap()
+        self.manager.set_active_feature("002-auth")
+        self.assertEqual(self.manager.get_active_feature(), "002-auth")
+        metadata = self.manager.read_metadata()
+        self.assertEqual(metadata["activeFeature"], "002-auth")
 
 
 def shutil_copy_tree(src: Path, dst: Path) -> None:

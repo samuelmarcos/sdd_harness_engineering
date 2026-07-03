@@ -34,14 +34,17 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    - `progress.md`, `decisions.md`, `next-steps.md` — plano vivo (compatível com hooks)
    - `metadata.json` — tokens estimados e histórico de checkpoints (gerido pelo harness)
 5. **Definir a feature ativa** escrevendo o ID em
-   `.claude/session-context/active-feature`.
+   `.claude/session-context/active-feature` **e** rodando:
+   `python3 .sdd/sdd.py session sync-feature <id>`
 
 ## Memória curta e longa (SessionManager)
 
 No início de cada interação, carregue o contexto persistido:
 
 ```bash
-python3 .sdd/sdd.py session context
+python3 .sdd/sdd.py session bootstrap              # se sessão nova ou no Cursor
+python3 .sdd/sdd.py session sync-feature <id>    # ao trocar feature ativa
+python3 .sdd/sdd.py session context [--feature <id>]
 python3 .sdd/sdd.py session status
 ```
 

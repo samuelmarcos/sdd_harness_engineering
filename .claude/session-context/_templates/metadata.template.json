@@ -1,0 +1,10 @@
+{
+  "sessionId": "sess-YYYYMMDD-HHMMSS",
+  "createdAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "updatedAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "activeFeature": null,
+  "estimatedTokens": 0,
+  "tokenThreshold": 8000,
+  "checkpoints": [],
+  "resumeStrategy": "summary"
+}

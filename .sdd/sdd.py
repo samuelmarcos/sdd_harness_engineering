@@ -635,6 +635,55 @@ def command_session_context(args):
     return 0
 
 
+def command_session_sync_feature(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session sync-feature falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada.")
+        return 0
+    manager.bootstrap()
+    manager.set_active_feature(args.feature)
+    status_path = feature_dir(args.root, args.feature) / "status.json"
+    title = args.feature
+    status_value = "(unknown)"
+    if status_path.is_file():
+        try:
+            status = read_json(status_path)
+            title = status.get("title") or title
+            status_value = status.get("status") or status_value
+        except (OSError, ValueError):
+            pass
+    next_steps = (
+        "# Próximos passos\n\n"
+        "- **Feature ativa:** {} — {}\n"
+        "- **Status:** {}\n"
+        "- **Retomar:** `python3 .sdd/sdd.py session context --feature {}`\n"
+        "- **Log de impl:** `progress/impl_{}.md`\n"
+    ).format(args.feature, title, status_value, args.feature, args.feature)
+    manager.update_next_steps(next_steps)
+    print("OK feature ativa sincronizada: {}".format(args.feature))
+    return 0
+
+
+def command_session_task_note(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session task-note falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada.")
+        return 0
+    manager.bootstrap()
+    files = [item.strip() for item in args.files.split(",") if item.strip()] if args.files else None
+    manager.append_task_progress(args.feature, args.task, args.note, files)
+    print("OK task {} registrada em features/{}/context.md".format(args.task, args.feature))
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description="Controles determinísticos SDD")
     parser.add_argument("--root", type=Path, default=Path.cwd())
@@ -704,6 +753,27 @@ def build_parser():
     context_parser = session_sub.add_parser("context")
     context_parser.add_argument("--feature", default=None)
     context_parser.set_defaults(handler=command_session_context)
+
+    sync_parser = session_sub.add_parser(
+        "sync-feature",
+        help="define active-feature, context.md e next-steps.md",
+    )
+    sync_parser.add_argument("feature")
+    sync_parser.set_defaults(handler=command_session_sync_feature)
+
+    task_note_parser = session_sub.add_parser(
+        "task-note",
+        help="registra progresso de uma task em features/<id>/context.md",
+    )
+    task_note_parser.add_argument("--feature", required=True)
+    task_note_parser.add_argument("--task", required=True, help="ex: F021-T3")
+    task_note_parser.add_argument("--note", required=True)
+    task_note_parser.add_argument(
+        "--files",
+        default=None,
+        help="lista separada por vírgula de arquivos tocados",
+    )
+    task_note_parser.set_defaults(handler=command_session_task_note)
     return parser
 
 

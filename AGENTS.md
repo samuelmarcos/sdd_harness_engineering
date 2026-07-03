@@ -23,26 +23,33 @@ session-context/    → memória curta    progress/
 checkpoints/        → arquivos pós-checkpoint (longo prazo)
 ```
 
-**Memória de sessão** (infra core — ver ADR-001 em `docs/architecture/adr/001-session-context.md`):
+**Memória de sessão** (infra core — spec `memory/memory.md`, ADR `docs/architecture/adr/001-session-context.md`):
 
-| Nível | Local | Conteúdo |
-|-------|-------|----------|
-| Curto prazo | `.claude/session-context/` | `global/working.md`, `features/<id>/context.md`, `metadata.json` |
-| Longo prazo | `.claude/knowledge/checkpoints/` | Arquivos arquivados após checkpoint |
-| Lições | `.claude/knowledge/learned-lessons.md` | Aprendizados persistentes |
+| Nível | Local | Git | Conteúdo |
+|-------|-------|-----|----------|
+| Curto prazo | `.claude/session-context/` | Ignorado (exceto `_templates/`) | `global/working.md`, `features/<id>/context.md`, `metadata.json` |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado | Arquivos após checkpoint |
+| Lições | `.claude/knowledge/learned-lessons.md` | Versionado | Aprendizados persistentes |
+| Por task (versionado) | `progress/impl_<id>.md` | Versionado | Log detalhado + `## Contexto do módulo` |
 
-Comandos (`SessionManager` via `.sdd/sdd.py`):
+Comandos (`SessionManager` via `.sdd/sdd.py`; no Windows use `py -3`):
 
 ```bash
-python3 .sdd/sdd.py session bootstrap    # início de sessão (hook session-start)
-python3 .sdd/sdd.py session context    # contexto para injetar no prompt
-python3 .sdd/sdd.py session status     # tokens / checkpoints
-python3 .sdd/sdd.py session checkpoint # arquiva quando ≥ limiar
+python3 .sdd/sdd.py session bootstrap              # início de sessão (hook session-start)
+python3 .sdd/sdd.py session context [--feature ID] # contexto mesclado para retomar
+python3 .sdd/sdd.py session sync-feature <id>      # leader — alinha active-feature + next-steps
+python3 .sdd/sdd.py session task-note --feature ID --task FNNN-T1 --note "..." [--files a,b]
+python3 .sdd/sdd.py session status                 # tokens / checkpoints
+python3 .sdd/sdd.py session checkpoint [--force]   # arquiva quando ≥ limiar
+python3 -m unittest discover -s tests/harness -v   # testes do harness
 python3 .sdd/sdd.py approve <feature> --by "<humano>"
 python3 .sdd/sdd.py review record <feature> --kind qa|traceability \
   --verdict approved|changes_requested --report reviews/<arquivo>.md
 python3 .sdd/sdd.py validate <feature>
 ```
+
+> **Cursor:** o hook `SessionStart` pode não rodar — execute `session bootstrap` manualmente.
+> **Implementer:** após cada task `[x]`, rode `session task-note` **e** atualize `progress/impl_<id>.md`.
 
 > Após QA ou reviewer validar: **Write** em `specs/features/<id>/reviews/` **e**
 > imediatamente `review record` — persiste `status.json` sem edição manual.
@@ -183,3 +190,4 @@ spec mudou depois da aprovação.
 
 `CLAUDE.md` é a **fonte de verdade técnica**. Subagentes e skills leem antes de
 especificar ou implementar. Guia visual: **`fluxoSdd.md`** e **`README.md`** (Fluxos principais). Specs: **`specs/README.md`**.
+Memória de sessão: **`memory/memory.md`**, ADR **`docs/architecture/adr/001-session-context.md`**.
