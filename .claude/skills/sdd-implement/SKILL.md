@@ -36,6 +36,9 @@ Executa a implementação de uma feature **com spec aprovada**.
    - tabela Task ↔ FNNN-R\<n\> ↔ RED/GREEN/REFACTOR ↔ arquivos/testes
 7. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
    - Para cada task, execute **RED → GREEN → REFACTOR**.
+   - Siga as **Boas práticas de código** de `.claude/agents/implementer.md`
+     (nomenclatura, funções pequenas, refatoração em passos, testes de
+     caracterização em legado, migração incremental de schema).
    - Confirme a falha esperada antes do código.
    - Implemente o mínimo, refatore com a suíte verde, marque `[x]` e registre.
    - Use `@covers FNNN-R<n>` nos testes.

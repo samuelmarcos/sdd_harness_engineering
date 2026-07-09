@@ -375,7 +375,7 @@ explicitamente (*"atue como leader"*).
 |---------|-------|---------------------|
 | `leader.md` | Orquestra o fluxo SDD, mantém `session-context/`, atualiza `status.json` e `BACKLOG.md` | ❌ |
 | `spec_author.md` | Escreve `requirements.md`, `design.md`, `tasks.md` em `specs/features/<id>/` | ❌ (só specs) |
-| `implementer.md` | Executa `tasks.md`, marca `[x]`, registra em `progress/`, escreve testes | ✅ |
+| `implementer.md` | Executa `tasks.md`, marca `[x]`, registra em `progress/`, escreve testes; aplica o canon de boas práticas (Clean Code, Refactoring, Pragmatic Programmer…) | ✅ |
 | `quality-assurance.md` | Roda build/lint/test, valida paridade, design e `docs/architecture/assessment.md` | ❌ |
 | `reviewer.md` | Audita rastreabilidade FNNN-R\<n\> ↔ task ↔ teste e escopo | ❌ |
 | `tech_writer.md` | Atualiza README, CLAUDE, `docs/` e guias quando lógica/contratos mudam | ❌ (só docs) |

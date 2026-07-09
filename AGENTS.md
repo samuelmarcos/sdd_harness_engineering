@@ -97,7 +97,7 @@ Diagramas completos: **`README.md`** (seção *Fluxos principais*) e **`fluxoSdd
 |---|---|---|
 | `leader` | Orquestra o fluxo, mantém `session-context/`, decide próximo passo | ❌ Não |
 | `spec_author` | Escreve `requirements.md`, `design.md`, `tasks.md` | ❌ Só specs |
-| `implementer` | Implementa seguindo `tasks.md`, marca `[x]` | ✅ Sim |
+| `implementer` | Implementa seguindo `tasks.md`, marca `[x]`; segue o canon de boas práticas (Clean Code, Refactoring, Legacy Code…) | ✅ Sim |
 | `quality-assurance` | Valida funcionamento, paridade, design e arquitetura | ❌ Só relata |
 | `reviewer` | Verifica rastreabilidade FNNN-R\<n\> ↔ task ↔ teste e escopo | ❌ Só relata |
 | `tech_writer` | Sincroniza README, CLAUDE, `docs/` e guias com código/decisões | ❌ Só documentação |
