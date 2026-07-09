@@ -28,6 +28,9 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    - Implementação concluída → skill `sdd-review` (QA + reviewer persistem
      relatórios via `reviews/` + `sdd.py review record` — **automático**)
    - Revisão OK (QA ✅ + Reviewer ✅, relatórios registrados) → você marca `done`
+   - Após `done` (ou `/kickoff`, `/clarificar`, `/integracoes`) com **impacto documental**
+     → delegue ao **`tech_writer`** (APIs, contratos, env vars, fluxos, arquitetura)
+   - Pedido explícito de documentação → **`tech_writer`**
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
    - `global/working.md` — foco e notas globais da sessão
    - `features/<id>/context.md` — contexto escopado à feature ativa

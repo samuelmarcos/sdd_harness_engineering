@@ -71,6 +71,10 @@ Transições aplicadas por `review record`:
 5. Se **QA ✅ + Reviewer ✅** → instrua o `leader` a marcar `done`, atualizar
    `BACKLOG.md` e registrar aprendizados.
 
+6. Se o relatório de **QA** indicar **impacto na documentação** (ou o `design.md`
+   alterou contratos/APIs/comandos visíveis) → instrua o `leader` a acionar
+   **`tech_writer`** após `done` (não bloqueia o fechamento da feature).
+
 ## Matriz de rastreabilidade (obrigatória)
 
 ```markdown
@@ -86,7 +90,8 @@ A feature só recebe **APROVADO** se **ambos** os agentes aprovarem **e** os rel
 estiverem em `reviews/` com `review record` executado.
 
 - ✅ **APROVADO** (QA ✅ + Reviewer ✅) → `leader` marca `done`, atualiza
-  `BACKLOG.md` e `.claude/knowledge/learned-lessons.md`.
+  `BACKLOG.md` e `.claude/knowledge/learned-lessons.md`; se QA sinalizou impacto
+  documental → `leader` delega **`tech_writer`**.
 - ❌ **REPROVADO** → consolide falhas; `leader` retorna a `in_progress` ou
   `awaiting_approval` se a spec mudar.
 

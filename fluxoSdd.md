@@ -50,6 +50,10 @@ flowchart TD
     J --> K["sdd-review\nQA + reviewer"]
     K --> L{Ambos ✅?}
     L -->|Sim| M["leader: done"]
+    M --> O{Impacto\ndocumental?}
+    O -->|Sim| P["tech_writer"]
+    O -->|Não| Q["Fim"]
+    P --> Q
     L -->|Não| N["changes_requested"]
 ```
 
@@ -62,6 +66,7 @@ flowchart TD
 | 4 | Implementação | `sdd-implement` + `/mapear` focal | `in_progress` | código, `progress/impl_*.md` |
 | 5 | Revisão | `sdd-review` | `in_review` / `verified` | `reviews/` + `review record` |
 | 6 | Done | `leader` | `done` | BACKLOG atualizado |
+| 6b | Documentação (opcional) | `tech_writer` | — | README, CLAUDE, `docs/` |
 
 ---
 
@@ -149,7 +154,7 @@ Relatórios: `python3 .sdd/sdd.py review record <id> --kind qa|traceability ...`
 
 | Pasta | Função |
 |-------|--------|
-| `.claude/agents/` | leader, spec_author, implementer, QA, reviewer |
+| `.claude/agents/` | leader, spec_author, implementer, QA, reviewer, tech_writer |
 | `.claude/skills/` | kickoff, integracoes, mapear, clarificar, roadmap, sdd-* |
 | `.claude/hooks/` | `session-start.sh`, `pre-tool-use.sh` |
 | `.claude/knowledge/` | session_manager.py, checkpoints/, lições, glossário |

@@ -40,6 +40,8 @@ Monte a matriz obrigatória:
 - [ ] Mudanças coesas e **dentro** do escopo do `design.md` (sem features extras).
 - [ ] Sem código morto introduzido.
 - [ ] Arquivos criados/alterados batem com o File Structure Plan do `design.md`.
+- [ ] Contratos públicos novos ou alterados (API, schema, CLI) estão refletidos no
+  `design.md` — se sim, mencione no relatório para o **`tech_writer`** (via leader).
 - [ ] Quirks de `CLAUDE.md` respeitados (naming, padrões locais).
 
 > Build, lint, testes rodando e paridade de resultados são verificados pelo

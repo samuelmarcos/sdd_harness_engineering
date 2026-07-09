@@ -197,6 +197,11 @@ Produza sempre as **quatro** seções, mesmo que aprovadas:
 ### Conformidade arquitetural
 - ✅ <restrição respeitada>
 - ❌ <arquivo>:<linha> — <violação e impacto>
+
+### Impacto na documentação
+- **Requer atualização:** sim / não
+- **Motivo:** <API, contrato, env var, comando, módulo novo, breaking change, nenhum>
+- **Arquivos sugeridos:** README.md, CLAUDE.md, docs/… (ou "n/a")
 ```
 
 Persista o relatório em

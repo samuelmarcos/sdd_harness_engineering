@@ -56,6 +56,10 @@ flowchart TD
     J --> K["sdd-review\nQA + reviewer"]
     K --> L{Ambos ✅?}
     L -->|Sim| M["leader: verified → done"]
+    M --> O{Impacto\ndocumental?}
+    O -->|Sim| P["tech_writer"]
+    O -->|Não| Q["Fim"]
+    P --> Q
     L -->|Não| N["changes_requested\n→ corrigir"]
 ```
 
@@ -66,6 +70,7 @@ flowchart TD
 | Implementação | `sdd-implement` + `/mapear` focal | `progress/impl_<id>.md`, código, testes |
 | Revisão | `sdd-review` | `reviews/qa-*.md`, `reviews/traceability-*.md` |
 | Fechamento | `leader` | `status.json` → `done` |
+| Documentação (opc.) | `tech_writer` | README, CLAUDE, `docs/` |
 
 ### `/mapear` global vs focal
 
@@ -127,7 +132,7 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 ├── .sdd/migrate_session_context.py  # Migração brownfield de session-context legado
 │
 ├── .claude/               # Harness Claude Code (subagentes, skills, hooks, memória)
-│   ├── agents/            # leader, spec_author, implementer, QA, reviewer
+│   ├── agents/            # leader, spec_author, implementer, QA, reviewer, tech_writer
 │   ├── skills/            # kickoff, mapear, sdd-*, integracoes, clarificar, roadmap
 │   ├── hooks/             # session-start.sh, pre-tool-use.sh
 │   ├── knowledge/         # session_manager.py, checkpoints/, learned-lessons.md
@@ -345,7 +350,7 @@ são carregados como contexto de projeto no início da sessão.
 ```
 Harness Claude Code (.claude/)          SDD (specs/)              Código
 ─────────────────────────────          ─────────────              ──────
-agents/     → 5 subagentes            features/*/requirements    src/
+agents/     → 6 subagentes            features/*/requirements    src/
 skills/     → kickoff, integracoes,   features/*/design.md       tests/
               clarificar, mapear,      features/*/tasks.md        progress/
               roadmap, sdd-*           features/*/status.json
@@ -373,6 +378,7 @@ explicitamente (*"atue como leader"*).
 | `implementer.md` | Executa `tasks.md`, marca `[x]`, registra em `progress/`, escreve testes | ✅ |
 | `quality-assurance.md` | Roda build/lint/test, valida paridade, design e `docs/architecture/assessment.md` | ❌ |
 | `reviewer.md` | Audita rastreabilidade FNNN-R\<n\> ↔ task ↔ teste e escopo | ❌ |
+| `tech_writer.md` | Atualiza README, CLAUDE, `docs/` e guias quando lógica/contratos mudam | ❌ (só docs) |
 
 ---
 
@@ -535,6 +541,10 @@ flowchart TD
     F6 --> F7["tasks RED→GREEN→REFACTOR"]
     F7 --> F8["sdd-review: QA + reviewer"]
     F8 --> F9["leader: done"]
+    F9 --> F10{Impacto\ndocumental?}
+    F10 -->|Sim| F11["tech_writer"]
+    F10 -->|Não| F12["Fim"]
+    F11 --> F12
 ```
 
 Passo a passo (referência rápida):

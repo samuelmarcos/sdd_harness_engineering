@@ -91,7 +91,7 @@ Diagramas completos: **`README.md`** (seção *Fluxos principais*) e **`fluxoSdd
 
 ---
 
-## Os 5 Subagentes (em `.claude/agents/`)
+## Os 6 Subagentes (em `.claude/agents/`)
 
 | Agente | Papel | Pode editar código? |
 |---|---|---|
@@ -100,9 +100,12 @@ Diagramas completos: **`README.md`** (seção *Fluxos principais*) e **`fluxoSdd
 | `implementer` | Implementa seguindo `tasks.md`, marca `[x]` | ✅ Sim |
 | `quality-assurance` | Valida funcionamento, paridade, design e arquitetura | ❌ Só relata |
 | `reviewer` | Verifica rastreabilidade FNNN-R\<n\> ↔ task ↔ teste e escopo | ❌ Só relata |
+| `tech_writer` | Sincroniza README, CLAUDE, `docs/` e guias com código/decisões | ❌ Só documentação |
 
 > O **leader** nunca edita paths protegidos (`.sdd/config.json`). Na **revisão**,
 > `sdd-review` coordena QA + reviewer — feature só fecha com **ambos** ✅.
+> Após `done`, o **leader** aciona **`tech_writer`** se houve impacto em lógica,
+> contratos, APIs, deploy ou arquitetura documentável.
 
 **Pré-requisitos brownfield (código existente):**
 
@@ -134,6 +137,7 @@ Diagramas completos: **`README.md`** (seção *Fluxos principais*) e **`fluxoSdd
 | 4. Implementação | tasks `[x]`, código, `progress/` + `/mapear` focal | `sdd-implement` | → `in_progress` |
 | 5. Revisão | relatórios em `reviews/` + `review record` | `quality-assurance`, `reviewer` | → `in_review` / `verified` |
 | 6. Fechamento | QA ✅ + reviewer ✅ | `leader` | `verified` → `done` |
+| 6b. Documentação | README, CLAUDE, `docs/` (se impacto) | `tech_writer` | — (não bloqueia `done`) |
 
 ---
 
@@ -172,6 +176,7 @@ spec mudou depois da aprovação.
 | "Aprovado" | `leader` persiste aprovação + digest e libera `sdd-implement` |
 | "Implemente a feature NNN" | `sdd-implement` (+ `/mapear` focal se Contexto do módulo ausente) |
 | "Revise a feature NNN" | `sdd-review` (QA + reviewer) |
+| "Atualize a documentação" / feature com contrato novo | `tech_writer` |
 | "Status do projeto" | `leader` lê `status.json` + BACKLOG |
 
 ---

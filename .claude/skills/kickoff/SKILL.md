@@ -98,7 +98,7 @@ Quando um eixo abrir decisão ramificada → rode `/clarificar`.
 
 Proponha o harness SDD para o projeto:
 
-- Quais **subagentes** fazem sentido além dos 5 padrão (leader, spec_author, implementer, quality-assurance, reviewer)?
+- Quais **subagentes** fazem sentido além dos 6 padrão (leader, spec_author, implementer, quality-assurance, reviewer, **tech_writer**)?
 - Quais **skills** de domínio instalar (ex.: `nestjs-best-practices`, `saas-standards`)?
 - Quais **hooks** além dos padrões SDD (pre-commit, build-on-save)?
 - Quais **workflows de CI** automatizar?

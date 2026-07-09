@@ -14,6 +14,7 @@
 | **Quality-assurance (QA)** | Subagente que valida funcionamento, paridade, design e arquitetura. |
 | **Paridade** | Mesmos resultados que antes da mudança, salvo delta documentado na spec. |
 | **sdd-review** | Skill que coordena QA + reviewer; feature só fecha com ambos ✅. |
+| **tech_writer** | Subagente que sincroniza README, CLAUDE, `docs/` e guias com código e decisões. |
 | **/integracoes** | Skill read-first — inventário de ferramentas e insumos em `docs/integrations/inventory.md`. |
 | **/clarificar** | Sabatina para decisões ramificadas; saída em ADR ou `session-context/decisions.md`. |
 | **SessionManager** | Classe em `.claude/knowledge/session_manager.py` — curto prazo (`session-context/`) e checkpoints. |
