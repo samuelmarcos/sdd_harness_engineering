@@ -15,6 +15,9 @@
 - **Mudança mínima** por task — implemente só o que a spec pede.
 - **Testes com `@covers FNNN-R<n>`** — obrigatório para rastreabilidade SDD.
 - **TDD por slice** — RED → GREEN → REFACTOR em cada task.
+- **Boas práticas de código** — canon (Clean Code, Refactoring, Pragmatic
+  Programmer, Legacy Code, Clean Architecture…) detalhado em
+  `.claude/agents/implementer.md` → *Boas práticas de código*.
 
 ---
 
