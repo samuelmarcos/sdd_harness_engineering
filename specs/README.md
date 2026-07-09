@@ -86,6 +86,7 @@ Depois que o item está no `BACKLOG.md`:
 | 4 | Implementação | `sdd-implement` → `implementer` | `tasks.md` `[x]`, `progress/impl_*.md` |
 | 5 | Revisão | `sdd-review` | `in_review` + relatórios persistidos |
 | 6 | Done | `leader` | `verified` → `done`, BACKLOG atualizado |
+| 6b | Documentação (se impacto) | `tech_writer` | README, CLAUDE, `docs/` sincronizados |
 
 ### Comandos naturais
 
@@ -96,6 +97,7 @@ Depois que o item está no `BACKLOG.md`:
 | `Aprovado` | Leader persiste aprovação + digest; hook libera código |
 | `Implemente a feature 001` | `sdd-implement` |
 | `Revise a feature 001` | `sdd-review` (QA + reviewer) |
+| `Atualize a documentação` | `tech_writer` — sincroniza README, CLAUDE e `docs/` |
 
 ---
 

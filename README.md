@@ -460,8 +460,8 @@ SDD_ENFORCE=false claude
 
 #### `.claude/knowledge/` — Memória longa
 
-Persiste aprendizados entre sessões. O `leader`, `quality-assurance` e `reviewer`
-atualizam ao fechar features.
+Persiste aprendizados entre sessões. O `leader`, `quality-assurance`, `reviewer`
+e `tech_writer` atualizam ao fechar features.
 
 | Arquivo | Função |
 |---------|--------|
@@ -559,6 +559,7 @@ Passo a passo (referência rápida):
        └─ implementer       → tasks [x], testes @covers
 5. "Revise feature NNN"      → sdd-review (QA ✅ + reviewer ✅)
 6. Leader                    → verified → done; limpar active-feature se encerrada
+7. Impacto documental?       → tech_writer sincroniza README, CLAUDE, docs/
 ```
 
 | Você diz | Skill acionada | O que acontece |
@@ -574,6 +575,7 @@ Passo a passo (referência rápida):
 | `Implemente a feature 001` | **sdd-implement** | `/mapear` focal → código + testes + `progress/impl_<id>.md` |
 | `Revise a feature 001` | **sdd-review** | QA + reviewer; veredito consolidado |
 | _(QA ✅ + Reviewer ✅)_ | **leader** | Valida `verified` e marca `done` |
+| `Atualize a documentação` | **tech_writer** | Sincroniza README, CLAUDE, `docs/` com código e decisões |
 
 ---
 
