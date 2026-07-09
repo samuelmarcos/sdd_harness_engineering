@@ -35,6 +35,7 @@ specs/
 | `docs/integrations/inventory.md` | Ferramentas reais (via `/integracoes`) — enriquece requisitos e design |
 | `docs/architecture/adr/` | Decisões ramificadas (via `/clarificar`) — referenciar em `design.md` |
 | `progress/impl_<id>.md` | Log de implementação + `## Contexto do módulo` |
+| `.claude/session-context/features/<id>/context.md` | Memória curta da feature (SessionManager) |
 
 ---
 
@@ -85,6 +86,7 @@ Depois que o item está no `BACKLOG.md`:
 | 4 | Implementação | `sdd-implement` → `implementer` | `tasks.md` `[x]`, `progress/impl_*.md` |
 | 5 | Revisão | `sdd-review` | `in_review` + relatórios persistidos |
 | 6 | Done | `leader` | `verified` → `done`, BACKLOG atualizado |
+| 6b | Documentação (se impacto) | `tech_writer` | README, CLAUDE, `docs/` sincronizados |
 
 ### Comandos naturais
 
@@ -95,6 +97,7 @@ Depois que o item está no `BACKLOG.md`:
 | `Aprovado` | Leader persiste aprovação + digest; hook libera código |
 | `Implemente a feature 001` | `sdd-implement` |
 | `Revise a feature 001` | `sdd-review` (QA + reviewer) |
+| `Atualize a documentação` | `tech_writer` — sincroniza README, CLAUDE e `docs/` |
 
 ---
 
@@ -186,8 +189,28 @@ Se o projeto **já tem código** (não é greenfield puro):
 1. **`/mapear`** antes de `sdd-init` quando a feature toca paths protegidos e o módulo
    não está em `assessment.md`.
 2. **`design.md`** deve ter **`## Contexto as-is`** preenchido.
-3. **`sdd-implement`** registra **`## Contexto do módulo`** em `progress/impl_<id>.md`.
+3. **`sdd-implement`** registra **`## Contexto do módulo`** em `progress/impl_<id>.md`
+   via **`/mapear` focal** (arquivos das tasks + vizinhos) se ainda não existir.
 4. Decisão estrutural em aberto → **`/clarificar`** antes de fechar o design.
+
+---
+
+## Memória de sessão
+
+Spec: `memory/memory.md` · ADR: `docs/architecture/adr/001-session-context.md`
+
+| Nível | Pasta | Git |
+|-------|-------|-----|
+| Curto prazo | `.claude/session-context/` | Ignorado (exceto `_templates/`) |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado |
+| Por task | `progress/impl_<id>.md` | Versionado |
+
+```bash
+python3 .sdd/sdd.py session bootstrap|sync-feature|task-note|context|status|checkpoint
+python3 -m unittest discover -s tests/harness -v
+```
+
+> **Cursor:** rode `session bootstrap` manualmente se o hook SessionStart não executar.
 
 ---
 

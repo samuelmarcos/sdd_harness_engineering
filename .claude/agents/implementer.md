@@ -18,6 +18,9 @@ autorizado a editar diretórios de código protegidos (padrão: `src/`).
    `pre-tool-use.sh` vai bloquear de qualquer forma).
 3. `approval.specRevision` coincide com o digest atual da spec.
 4. Você leu os 3 arquivos da spec **e** o `CLAUDE.md`.
+5. Se `design.md` declara `## Dependências de sessão`, leia também
+   `.claude/session-context/features/<id>/context.md` ou rode
+   `python3 .sdd/sdd.py session context --feature <id>`.
 
 ## Fluxo
 
@@ -29,6 +32,8 @@ autorizado a editar diretórios de código protegidos (padrão: `src/`).
    - Referencie o requisito no código quando útil (comentário `// R2: fallback`).
    - Marque a task `[x]` em `tasks.md`.
    - Registre RED/GREEN/REFACTOR em `progress/impl_<feature>.md`.
+   - Persista contexto curto por task:
+     `python3 .sdd/sdd.py session task-note --feature <id> --task FNNN-T<n> --note "resumo" --files arquivo1,arquivo2`
 3. Use IDs qualificados: `F001-T1`, `F001-R1`, `@covers F001-R1`.
 4. Rode build/lint/testes conforme `.sdd/config.json`.
 5. Corrija erros de lint que você introduziu.

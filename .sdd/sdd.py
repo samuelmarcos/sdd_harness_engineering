@@ -4,6 +4,7 @@
 import argparse
 import datetime as dt
 import hashlib
+import importlib.util
 import json
 import re
 import sys
@@ -418,6 +419,49 @@ def validate_feature(root, feature_id):
     return errors
 
 
+def record_review(root, feature_id, kind, verdict, report):
+    if kind not in {"qa", "traceability"}:
+        raise ValueError("kind deve ser qa ou traceability")
+    if verdict not in {"approved", "changes_requested"}:
+        raise ValueError("verdict deve ser approved ou changes_requested")
+
+    feature_path = feature_dir(root, feature_id)
+    report_norm = report.replace("\\", "/").lstrip("/")
+    if not report_norm.startswith("reviews/"):
+        report_norm = "reviews/" + Path(report_norm).name
+
+    report_path = (feature_path / report_norm).resolve(strict=False)
+    reviews_dir = (feature_path / "reviews").resolve(strict=False)
+    if not is_within(report_path, reviews_dir):
+        raise ValueError(
+            "report deve estar em specs/features/{}/reviews/".format(feature_id)
+        )
+    if not report_path.is_file():
+        raise ValueError("arquivo de relatório não encontrado: {}".format(report_norm))
+
+    status_path = feature_path / "status.json"
+    status = read_json(status_path)
+    reviews = status.setdefault("reviews", {})
+    reviews[kind] = {"status": verdict, "report": report_norm}
+
+    today = dt.date.today().isoformat()
+    status["updated"] = today
+    current = status.get("status")
+
+    if verdict == "changes_requested":
+        status["status"] = "changes_requested"
+    elif verdict == "approved":
+        if kind == "qa" and current in {"approved", "in_progress"}:
+            status["status"] = "in_review"
+        elif kind == "traceability":
+            qa_status = reviews.get("qa", {}).get("status")
+            if qa_status == "approved" and current in {"in_review", "in_progress"}:
+                status["status"] = "verified"
+
+    write_json(status_path, status)
+    return report_norm
+
+
 def approve_feature(root, feature_id, approved_by):
     if not approved_by.strip():
         raise ValueError("identidade do aprovador não pode ser vazia")
@@ -494,6 +538,152 @@ def command_approve(args):
     return 0
 
 
+def command_review_record(args):
+    try:
+        report = record_review(
+            args.root,
+            args.feature,
+            args.kind,
+            args.verdict,
+            args.report,
+        )
+    except (OSError, ValueError) as error:
+        print("❌ Review não registrado: {}".format(error), file=sys.stderr)
+        return 1
+    print(
+        "✅ Review {} ({}) registrado — {} → {}".format(
+            args.kind, args.verdict, args.feature, report
+        )
+    )
+    return 0
+
+
+def read_harness_config(root):
+    path = root / ".sdd" / "config.json"
+    if not path.is_file():
+        return {}
+    return read_json(path)
+
+
+def load_session_manager(root):
+    module_path = root / ".claude" / "knowledge" / "session_manager.py"
+    if not module_path.is_file():
+        raise FileNotFoundError(str(module_path))
+    spec = importlib.util.spec_from_file_location("session_manager", module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.SessionManager(root, read_harness_config(root))
+
+
+def command_session_bootstrap(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session bootstrap falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada (sessionMemory.enabled=false).")
+        return 0
+    metadata = manager.bootstrap()
+    archived = manager.checkpoint_all(force=False)
+    if archived:
+        print("Checkpoint automatico — {} arquivo(s) arquivados.".format(len(archived)))
+    print("OK Session bootstrap — {}".format(metadata.get("sessionId", "(unknown)")))
+    return 0
+
+
+def command_session_status(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session status falhou: {}".format(error), file=sys.stderr)
+        return 1
+    print(manager.status_report())
+    return 0
+
+
+def command_session_checkpoint(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session checkpoint falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada.")
+        return 0
+    manager.bootstrap()
+    archived = manager.checkpoint_all(force=args.force)
+    if not archived:
+        print("Nenhum checkpoint necessário (limiar não atingido).")
+        return 0
+    print("Checkpoint — arquivos arquivados:")
+    for path in archived:
+        print("- " + path)
+    return 0
+
+
+def command_session_context(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session context falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        return 0
+    manager.bootstrap()
+    print(manager.get_merged_context(args.feature))
+    return 0
+
+
+def command_session_sync_feature(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session sync-feature falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada.")
+        return 0
+    manager.bootstrap()
+    manager.set_active_feature(args.feature)
+    status_path = feature_dir(args.root, args.feature) / "status.json"
+    title = args.feature
+    status_value = "(unknown)"
+    if status_path.is_file():
+        try:
+            status = read_json(status_path)
+            title = status.get("title") or title
+            status_value = status.get("status") or status_value
+        except (OSError, ValueError):
+            pass
+    next_steps = (
+        "# Próximos passos\n\n"
+        "- **Feature ativa:** {} — {}\n"
+        "- **Status:** {}\n"
+        "- **Retomar:** `python3 .sdd/sdd.py session context --feature {}`\n"
+        "- **Log de impl:** `progress/impl_{}.md`\n"
+    ).format(args.feature, title, status_value, args.feature, args.feature)
+    manager.update_next_steps(next_steps)
+    print("OK feature ativa sincronizada: {}".format(args.feature))
+    return 0
+
+
+def command_session_task_note(args):
+    try:
+        manager = load_session_manager(args.root)
+    except OSError as error:
+        print("❌ Session task-note falhou: {}".format(error), file=sys.stderr)
+        return 1
+    if not manager.enabled:
+        print("Session memory desabilitada.")
+        return 0
+    manager.bootstrap()
+    files = [item.strip() for item in args.files.split(",") if item.strip()] if args.files else None
+    manager.append_task_progress(args.feature, args.task, args.note, files)
+    print("OK task {} registrada em features/{}/context.md".format(args.task, args.feature))
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(description="Controles determinísticos SDD")
     parser.add_argument("--root", type=Path, default=Path.cwd())
@@ -515,6 +705,75 @@ def build_parser():
     approve_parser.add_argument("feature")
     approve_parser.add_argument("--by", dest="approved_by", required=True)
     approve_parser.set_defaults(handler=command_approve)
+
+    review_parser = subparsers.add_parser(
+        "review",
+        help="registrar relatório de revisão (QA ou traceability)",
+    )
+    review_sub = review_parser.add_subparsers(dest="review_command", required=True)
+    record_parser = review_sub.add_parser(
+        "record",
+        help="persiste reviews/*.md e atualiza status.json",
+    )
+    record_parser.add_argument("feature")
+    record_parser.add_argument(
+        "--kind",
+        required=True,
+        choices=["qa", "traceability"],
+        help="tipo de revisão",
+    )
+    record_parser.add_argument(
+        "--verdict",
+        required=True,
+        choices=["approved", "changes_requested"],
+        help="resultado da revisão",
+    )
+    record_parser.add_argument(
+        "--report",
+        required=True,
+        help="caminho relativo em specs/features/<id>/ (ex: reviews/qa-20260101-120000.md)",
+    )
+    record_parser.set_defaults(handler=command_review_record)
+
+    session_parser = subparsers.add_parser("session")
+    session_sub = session_parser.add_subparsers(dest="session_command", required=True)
+
+    bootstrap_parser = session_sub.add_parser("bootstrap")
+    bootstrap_parser.set_defaults(handler=command_session_bootstrap)
+
+    status_parser = session_sub.add_parser("status")
+    status_parser.set_defaults(handler=command_session_status)
+
+    checkpoint_parser = session_sub.add_parser("checkpoint")
+    checkpoint_parser.add_argument(
+        "--force", action="store_true", help="arquiva mesmo abaixo do limiar"
+    )
+    checkpoint_parser.set_defaults(handler=command_session_checkpoint)
+
+    context_parser = session_sub.add_parser("context")
+    context_parser.add_argument("--feature", default=None)
+    context_parser.set_defaults(handler=command_session_context)
+
+    sync_parser = session_sub.add_parser(
+        "sync-feature",
+        help="define active-feature, context.md e next-steps.md",
+    )
+    sync_parser.add_argument("feature")
+    sync_parser.set_defaults(handler=command_session_sync_feature)
+
+    task_note_parser = session_sub.add_parser(
+        "task-note",
+        help="registra progresso de uma task em features/<id>/context.md",
+    )
+    task_note_parser.add_argument("--feature", required=True)
+    task_note_parser.add_argument("--task", required=True, help="ex: F021-T3")
+    task_note_parser.add_argument("--note", required=True)
+    task_note_parser.add_argument(
+        "--files",
+        default=None,
+        help="lista separada por vírgula de arquivos tocados",
+    )
+    task_note_parser.set_defaults(handler=command_session_task_note)
     return parser
 
 

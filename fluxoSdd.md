@@ -2,7 +2,7 @@
 
 > Spec-Driven Development (SDD) deste template. Nenhum código de feature é escrito
 > sem **especificação aprovada por humano**. Processo completo também em `AGENTS.md`
-> e `specs/README.md`.
+> e `specs/README.md`. Diagramas expandidos: **`README.md`** (Fluxos principais).
 
 ---
 
@@ -11,32 +11,102 @@
 **Sem spec aprovada, sem código.**
 
 O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em diretórios protegidos
-quando a feature não está em `approved`/`in_progress` ou a spec mudou após aprovação.
+(`.sdd/config.json` → `protectedPaths`) quando a feature não está em `approved`/`in_progress`
+ou a spec mudou após aprovação.
 
 ---
 
-## Visão geral
+## Prelude do projeto (uma vez)
 
-```
-┌─────────────┐   ┌──────────────┐   ┌──────────┐   ┌──────────────┐   ┌──────────┐   ┌──────┐
-│ 1.Descoberta│ → │2.Especificação│ → │3.Aprovação│ → │4.Implementação│ → │5.Revisão │ → │6.Done│
-│  BACKLOG.md │   │ spec_author   │   │  HUMANO  │   │  implementer  │   │ sdd-review│   │leader│
-│  pending    │   │awaiting_appr. │   │ approved  │   │  in_progress  │   │in_review │   │ done │
-└─────────────┘   └──────────────┘   └──────────┘   └──────────────┘   └──────────┘   └──────┘
+```mermaid
+flowchart LR
+    A["/integracoes\n(opcional)"] --> B["/kickoff"]
+    B --> C{Modo?}
+    C -->|Brownfield| D["/mapear global\n→ assessment.md"]
+    C -->|Greenfield| E["Lean Inception"]
+    D --> F["/clarificar\n(se ramificar)"]
+    E --> F
+    F --> G["/roadmap\n→ BACKLOG.md"]
+    G --> H["Ciclo SDD\npor feature"]
 ```
 
 ---
 
-## As 6 fases
+## Ciclo SDD por feature
 
-| # | Fase | O que acontece | Artefatos | Status |
-|---|------|----------------|-----------|--------|
-| 1 | **Descoberta** | Ideia entra no backlog | `specs/BACKLOG.md` | `pending` |
-| 2 | **Especificação** | Skill `sdd-init` cria e valida a spec | requirements, design, tasks, status | → `awaiting_approval` |
-| 3 | **Aprovação** | Humano aprova; leader persiste identidade + digest | `status.json` | → `approved` |
-| 4 | **Implementação** | Skill `sdd-implement`; tasks viram código | `tasks.md` com `[x]`, código, `progress/impl_*.md` | → `in_progress` |
-| 5 | **Revisão** | Skill `sdd-review` — QA + rastreabilidade | relatórios persistidos | `in_review` |
-| 6 | **Done** | Feature validada e fechada | `verified` → `done`, BACKLOG atualizado | `done` |
+```mermaid
+flowchart TD
+    A["sdd-init"] --> B{Altera código\nprotegido? BF}
+    B -->|Sim| C["/mapear\n→ Contexto as-is"]
+    B -->|Não| D["spec_author"]
+    C --> D
+    D --> E["awaiting_approval"]
+    E --> F["Aprovado\nsdd.py approve"]
+    F --> G["sdd-implement"]
+    G --> H{Contexto do\nmódulo?}
+    H -->|Não| I["/mapear focal"]
+    H -->|Sim| J["implementer"]
+    I --> J
+    J --> K["sdd-review\nQA + reviewer"]
+    K --> L{Ambos ✅?}
+    L -->|Sim| M["leader: done"]
+    M --> O{Impacto\ndocumental?}
+    O -->|Sim| P["tech_writer"]
+    O -->|Não| Q["Fim"]
+    P --> Q
+    L -->|Não| N["changes_requested"]
+```
+
+| # | Fase | Skill / agente | Status | Artefato |
+|---|------|----------------|--------|----------|
+| 0 | Mapeamento (BF) | `/mapear` | — | `assessment.md`, ADRs |
+| 1 | Descoberta | `/roadmap` | `pending` | `BACKLOG.md` |
+| 2 | Especificação | `sdd-init` → `spec_author` | `awaiting_approval` | requirements, design, tasks |
+| 3 | Aprovação | humano + `leader` | `approved` | `sdd.py approve` + digest |
+| 4 | Implementação | `sdd-implement` + `/mapear` focal | `in_progress` | código, `progress/impl_*.md` |
+| 5 | Revisão | `sdd-review` | `in_review` / `verified` | `reviews/` + `review record` |
+| 6 | Done | `leader` | `done` | BACKLOG atualizado |
+| 6b | Documentação (opcional) | `tech_writer` | — | README, CLAUDE, `docs/` |
+
+---
+
+## `/mapear` global vs focal
+
+| Tipo | Quando | Saída |
+|------|--------|-------|
+| **Global** | Kickoff brownfield | `docs/architecture/assessment.md` |
+| **Focal** | `sdd-init` ou `sdd-implement` | `design.md` (as-is) e/ou `progress/impl_<id>.md` (Contexto do módulo) |
+
+---
+
+## Memória de sessão
+
+Infraestrutura paralela ao SDD — spec `memory/memory.md`, ADR `docs/architecture/adr/001-session-context.md`.
+
+```mermaid
+flowchart TD
+    A["session-start.sh\n(ou manual no Cursor)"] --> B["session bootstrap"]
+    B --> C["session-context/\ncurto prazo"]
+    C --> D["leader: sync-feature"]
+    D --> E["implementer: task-note\n(por task concluída)"]
+    E --> F{Tokens ≥ limiar?}
+    F -->|Sim| G["checkpoint → checkpoints/"]
+    F -->|Não| H["session context"]
+    G --> H
+    H --> I["progress/impl_id.md\n(versionado)"]
+```
+
+| Nível | Pasta | Git |
+|-------|-------|-----|
+| Curto prazo | `.claude/session-context/` (`global/`, `features/<id>/`) | Ignorado (exceto `_templates/`) |
+| Longo prazo | `.claude/knowledge/checkpoints/` | Ignorado |
+| Lições | `.claude/knowledge/learned-lessons.md` | Versionado |
+| Por task | `progress/impl_<id>.md` | Versionado |
+
+```bash
+python3 .sdd/sdd.py session bootstrap|context|sync-feature|task-note|status|checkpoint
+python3 -m unittest discover -s tests/harness -v
+```
 
 ---
 
@@ -45,49 +115,50 @@ quando a feature não está em `approved`/`in_progress` ou a spec mudou após ap
 ```
 specs/features/NNN-nome/
 ├── requirements.md   # FNNN-R1, FNNN-R2, ... (formato EARS)
-├── design.md         # decisões técnicas + plano de arquivos
+├── design.md         # decisões + File Structure Plan + Contexto as-is
 ├── tasks.md          # FNNN-T1, ... (RED → GREEN → REFACTOR)
-├── status.json       # estado + aprovação + revisões
-└── reviews/          # relatórios de QA e rastreabilidade
+├── status.json       # estado + approval + reviews
+└── reviews/          # relatórios QA e rastreabilidade
 ```
 
-Exemplo de referência: `specs/features/000-exemplo-sdd/`.
+Exemplo: `specs/features/000-exemplo-sdd/`.
+
+---
+
+## Rastreabilidade FNNN-R\<n\>
+
+```
+requirements.md     tasks.md              tests/
+ F001-R1 ───────── F001-T1 (F001-R1) ───── @covers F001-R1
+```
+
+Revisão (`sdd-review`): **QA + reviewer** — feature só fecha com ambos ✅.
+Relatórios: `python3 .sdd/sdd.py review record <id> --kind qa|traceability ...`
 
 ---
 
 ## Mapa de pastas
 
-### SDD — especificação e rastreabilidade
+### SDD
 
 | Pasta | Função |
 |-------|--------|
-| `specs/` | **Coração do SDD** — o que será construído antes de codar |
-| `specs/BACKLOG.md` | Lista priorizada de features |
-| `specs/features/NNN-nome/` | Uma feature completa |
-| `progress/` | Log de implementação (`impl_<id>.md`) |
-| `progress/current.md` | Feature ativa (gitignored) |
-| `tests/` | Testes com `@covers FNNN-R<n>` |
-| `docs/architecture/` | Arquitetura desejada — `assessment.md` (lido pelo QA) |
-| `docs/integrations/inventory.md` | Ferramentas e insumos read-first (via `/integracoes`) |
-| `.sdd/config.json` | Paths protegidos + comandos de build/test |
+| `specs/` | Fonte de verdade — o que será construído |
+| `specs/BACKLOG.md` | Backlog priorizado |
+| `progress/` | Log `impl_<id>.md` + Contexto do módulo |
+| `tests/` | `@covers FNNN-R<n>` + `tests/harness/` (Python) |
+| `docs/architecture/` | `assessment.md`, `adr/` |
+| `.sdd/` | `config.json`, `sdd.py`, `migrate_session_context.py` |
 
-### Harness — agentes, skills e disciplina (`.claude/`)
+### Harness (`.claude/`)
 
 | Pasta | Função |
 |-------|--------|
-| `.claude/agents/` | 5 subagentes: `leader`, `spec_author`, `implementer`, `quality-assurance`, `reviewer` |
-| `.claude/skills/kickoff/` | Início de projeto — greenfield/brownfield |
-| `.claude/skills/integracoes/` | Ferramentas do time — MCP read-first |
-| `.claude/skills/clarificar/` | Sabatina — decisões ramificadas → ADR |
-| `.claude/skills/mapping/` | Mapeamento as-is (brownfield) |
-| `.claude/skills/roadmap/` | BACKLOG por bounded context |
-| `.claude/skills/sdd-init/` | Criar pasta da feature + arquivos base |
-| `.claude/skills/sdd-implement/` | Implementar `tasks.md` |
-| `.claude/skills/sdd-review/` | Coordena QA + reviewer; feature só fecha com ambos ✅ |
-| `.claude/hooks/` | `pre-tool-use.sh` (disciplina) + `session-start.sh` (contexto) |
-| `.claude/knowledge/` | Memória longa — glossário, lições, ADRs |
-| `.claude/session-context/` | Memória curta — feature ativa, próximos passos |
-| `.claude/settings.json` | Permissões e registro de hooks |
+| `.claude/agents/` | leader, spec_author, implementer, QA, reviewer, tech_writer |
+| `.claude/skills/` | kickoff, integracoes, mapear, clarificar, roadmap, sdd-* |
+| `.claude/hooks/` | `session-start.sh`, `pre-tool-use.sh` |
+| `.claude/knowledge/` | session_manager.py, checkpoints/, lições, glossário |
+| `.claude/session-context/` | Memória curta (gitignored) |
 
 ---
 
@@ -100,21 +171,19 @@ Harness (veículo)                      SDD (processo)                    Códig
 .claude/skills/     → instruções       specs/features/*/design.md        tests/
 .claude/knowledge/  → memória longa    specs/features/*/tasks.md
 .claude/hooks/      → disciplina       specs/features/*/status.json      progress/
-session-context/    → memória curta    progress/
+session-context/    → memória curta (sync-feature, task-note)
+checkpoints/        → pós-checkpoint
+memory/memory.md    → spec operacional de memória
 ```
 
 ---
 
 ## Passo a passo no Claude Code
 
-1. Abra o projeto no terminal: `cd seu-projeto && claude`
-2. Leia o contexto emitido pelo hook `session-start.sh`.
-3. Diga: **"Nova feature: descrição da funcionalidade"**
-4. Revise `requirements.md`, `design.md`, `tasks.md` gerados.
-5. Diga: **"Aprovado"** (leader persiste aprovação + digest)
-6. Diga: **"Implemente a feature 001"**
-7. Diga: **"Revise a feature 001"** (skill `sdd-review` aciona QA + reviewer)
-8. Confirme veredito consolidado, `verified` → `done` e BACKLOG atualizado.
+1. `cd seu-projeto && claude` — hook `session-start.sh` carrega memória e status.
+2. Prelude (uma vez): `/kickoff` → `/roadmap`.
+3. Por feature: **"Nova feature: …"** → revise spec → **"Aprovado"** → **"Implemente"** → **"Revise"**.
+4. Brownfield: `/mapear` focal antes de codar se `## Contexto do módulo` estiver vazio.
 
 ---
 
@@ -124,4 +193,4 @@ session-context/    → memória curta    progress/
 SDD_ENFORCE=false claude
 ```
 
-Ou em `.claude/settings.json`: `"SDD_ENFORCE": "false"`. Use só para bootstrap inicial.
+Use só para bootstrap inicial.

@@ -1,9 +1,9 @@
 # Learned Lessons — Memória de longo prazo
 
-> Aprendizados acumulados entre sessões. O `leader`, `quality-assurance` e
-> `reviewer` registram aqui ao concluir features ou ao descobrir armadilhas.
-> ao concluir features ou ao descobrir armadilhas. Mantenha entradas curtas e
-> datadas. Para contexto técnico fixo, prefira `CLAUDE.md`.
+> Aprendizados acumulados entre sessões. O `leader`, `quality-assurance`,
+> `reviewer` e `tech_writer` registram aqui ao concluir features ou ao
+> descobrir armadilhas. Mantenha entradas curtas e datadas. Para contexto
+> técnico fixo, prefira `CLAUDE.md`.
 
 ## Formato
 

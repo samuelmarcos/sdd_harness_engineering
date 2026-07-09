@@ -13,6 +13,19 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SC="$ROOT/.claude/session-context"
 
+# Bootstrap memória curta/longa (metadata, templates, checkpoint se limiar)
+PYTHON=""
+if command -v python3 >/dev/null 2>&1; then
+  PYTHON="python3"
+elif command -v py >/dev/null 2>&1; then
+  PYTHON="py -3"
+elif command -v python >/dev/null 2>&1; then
+  PYTHON="python"
+fi
+if [ -n "$PYTHON" ]; then
+  $PYTHON "$ROOT/.sdd/sdd.py" --root "$ROOT" session bootstrap >/dev/null 2>&1 || true
+fi
+
 echo "════════════════════════════════════════════════════════"
 echo "  SDD SESSION CONTEXT"
 echo "════════════════════════════════════════════════════════"
@@ -87,6 +100,16 @@ elif [ -f "$SC/active-feature" ]; then
     echo "⚠ Feature $FEAT in_progress sem progress/impl_${FEAT}.md — sdd-implement deve criar após /mapear focal."
   elif [ "$ST" = "done" ] && [ -n "$FEAT" ]; then
     echo "ℹ Feature $FEAT está done — remova .claude/session-context/active-feature ao encerrar a feature."
+  fi
+fi
+
+# Memória curta (global + feature ativa)
+if [ -n "$PYTHON" ]; then
+  CONTEXT="$($PYTHON "$ROOT/.sdd/sdd.py" --root "$ROOT" session context 2>/dev/null || true)"
+  if [ -n "$CONTEXT" ]; then
+    echo ""
+    echo "▶ Memória de sessão (resumo):"
+    echo "$CONTEXT" | head -24 | sed 's/^/    /'
   fi
 fi
 

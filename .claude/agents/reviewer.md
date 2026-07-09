@@ -40,6 +40,8 @@ Monte a matriz obrigatória:
 - [ ] Mudanças coesas e **dentro** do escopo do `design.md` (sem features extras).
 - [ ] Sem código morto introduzido.
 - [ ] Arquivos criados/alterados batem com o File Structure Plan do `design.md`.
+- [ ] Contratos públicos novos ou alterados (API, schema, CLI) estão refletidos no
+  `design.md` — se sim, mencione no relatório para o **`tech_writer`** (via leader).
 - [ ] Quirks de `CLAUDE.md` respeitados (naming, padrões locais).
 
 > Build, lint, testes rodando e paridade de resultados são verificados pelo
@@ -50,6 +52,21 @@ Monte a matriz obrigatória:
 Persista o relatório em
 `specs/features/<id>/reviews/traceability-<YYYYMMDD-HHMMSS>.md`.
 
+### Fluxo obrigatório pós-revisão (automático)
+
+Imediatamente após o veredito, **sem confirmação humana**:
+
+1. **Escreva** o relatório (com matriz de rastreabilidade) via `Write`.
+2. **Registre** no harness:
+   ```bash
+   python3 .sdd/sdd.py review record <id> \
+     --kind traceability \
+     --verdict approved \
+     --report reviews/traceability-<timestamp>.md
+   ```
+   Use `--verdict changes_requested` se reprovado.
+3. **Valide** — `python3 .sdd/sdd.py validate <id>`.
+
 Termine com um dos dois:
 - ✅ **REVIEWER APROVADO** — todos os requisitos rastreados e testados; escopo respeitado.
   Informe o coordenador da `sdd-review` para consolidar com o veredito de QA.
@@ -58,7 +75,9 @@ Termine com um dos dois:
 
 ## Regras
 
-- ❌ NUNCA edite código, requirements, design, tasks ou status.
-- ✅ Escreva apenas o relatório em `specs/features/<id>/reviews/`.
+- ❌ NUNCA edite código, requirements, design ou tasks.
+- ❌ NUNCA edite `status.json` à mão — use `sdd.py review record`.
+- ✅ Escreva o relatório **e** rode `review record` na mesma execução.
 - ✅ Cite arquivos e linhas concretas como evidência.
-- ❌ NÃO marque a feature como `done` sozinho — isso é do `leader` após QA + Reviewer ✅.
+- ❌ NÃO marque a feature como `done` sozinho — isso é do `leader` após QA + Reviewer ✅
+  e `status.json = verified`.

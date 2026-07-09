@@ -18,8 +18,12 @@ __pycache__/
 
 # ── Harness / SDD (memória efêmera) ───────────────
 CLAUDE.local.md
-.claude/session-context/*
+.claude/session-context/**
 !.claude/session-context/.gitkeep
+!.claude/session-context/_templates/
+!.claude/session-context/_templates/**
+.claude/knowledge/checkpoints/**
+!.claude/knowledge/checkpoints/.gitkeep
 progress/current.md
 validation/
 

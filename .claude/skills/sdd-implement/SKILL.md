@@ -20,25 +20,36 @@ Executa a implementação de uma feature **com spec aprovada**.
 ## Passos
 
 1. **Confirme a feature ativa** em `.claude/session-context/active-feature`.
-2. **Leia** `requirements.md`, `design.md`, `tasks.md`, `CLAUDE.md` e
+   Sincronize com:
+   `python3 .sdd/sdd.py session sync-feature <id>`
+2. **Carregue contexto de sessão** (se existir):
+   `python3 .sdd/sdd.py session context --feature <id>`
+3. **Leia** `requirements.md`, `design.md`, `tasks.md`, `CLAUDE.md` e
    `docs/architecture/assessment.md`.
-3. **`/mapear` focal (se faltou no sdd-init):** leia e execute
+4. **`/mapear` focal (se faltou no sdd-init):** leia e execute
    **`.claude/skills/mapping/SKILL.md`** nos arquivos que as tasks vão tocar +
    vizinhos imediatos. Registre em `progress/impl_<id>.md` → seção
    **`## Contexto do módulo`** (convenções, acoplamentos, efeitos colaterais).
-4. **Transicione** `status.json` para `in_progress` (atualize `updated`).
-5. **Crie** `progress/impl_<id>.md` com:
+5. **Transicione** `status.json` para `in_progress` (atualize `updated`).
+6. **Crie** `progress/impl_<id>.md` com:
    - `## Contexto do módulo` (do `/mapear` focal)
    - tabela Task ↔ FNNN-R\<n\> ↔ RED/GREEN/REFACTOR ↔ arquivos/testes
-6. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
+7. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
    - Para cada task, execute **RED → GREEN → REFACTOR**.
    - Confirme a falha esperada antes do código.
    - Implemente o mínimo, refatore com a suíte verde, marque `[x]` e registre.
    - Use `@covers FNNN-R<n>` nos testes.
-7. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
+   - **Após cada task**, persista contexto curto:
+     `python3 .sdd/sdd.py session task-note --feature <id> --task FNNN-T<n> --note "GREEN passou" --files path/a,path/b`
+8. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
    lints introduzidos.
-8. **Valide** com `python3 .sdd/sdd.py validate <id>`.
-9. **Atualize** `progress/current.md` com o andamento.
+9. **Valide** com `python3 .sdd/sdd.py validate <id>`.
+10. **Atualize** `progress/current.md` com o andamento.
+11. **Dispare revisão automática** — acione `quality-assurance` (ou skill
+    `sdd-review` passo 2). O QA **deve** escrever
+    `specs/features/<id>/reviews/qa-*.md` e rodar
+    `python3 .sdd/sdd.py review record <id> --kind qa --verdict approved --report ...`
+    **sem** esperar pedido do humano.
 
 ## Disciplina
 
@@ -51,4 +62,5 @@ Executa a implementação de uma feature **com spec aprovada**.
 
 - Todas as tasks `[x]`, testes verdes.
 - Resumo dos arquivos tocados (do `progress/impl_<id>.md`).
-- Recomende rodar a skill `sdd-review` (aciona `quality-assurance` + `reviewer`).
+- QA deve persistir relatório automaticamente (`reviews/` + `review record`).
+- Se QA já aprovou, acione o `reviewer` para traceability.

@@ -25,21 +25,67 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido)
    - Spec aguardando aprovação → apresente ao humano e pare
    - Spec aprovada (`approved`) → `implementer` ou skill `sdd-implement` (com contexto do módulo)
-   - Implementação concluída → skill `sdd-review` (coordena `quality-assurance` + `reviewer`)
-   - Revisão OK (QA ✅ + Reviewer ✅) → você marca `verified`, valida e fecha como `done`
+   - Implementação concluída → skill `sdd-review` (QA + reviewer persistem
+     relatórios via `reviews/` + `sdd.py review record` — **automático**)
+   - Revisão OK (QA ✅ + Reviewer ✅, relatórios registrados) → você marca `done`
+   - Após `done` (ou `/kickoff`, `/clarificar`, `/integracoes`) com **impacto documental**
+     → delegue ao **`tech_writer`** (APIs, contratos, env vars, fluxos, arquitetura)
+   - Pedido explícito de documentação → **`tech_writer`**
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
-   - `progress.md` — plano vivo da sessão
-   - `decisions.md` — decisões tomadas
-   - `next-steps.md` — o que fazer a seguir
+   - `global/working.md` — foco e notas globais da sessão
+   - `features/<id>/context.md` — contexto escopado à feature ativa
+   - `progress.md`, `decisions.md`, `next-steps.md` — plano vivo (compatível com hooks)
+   - `metadata.json` — tokens estimados e histórico de checkpoints (gerido pelo harness)
 5. **Definir a feature ativa** escrevendo o ID em
-   `.claude/session-context/active-feature`.
+   `.claude/session-context/active-feature` **e** rodando:
+   `python3 .sdd/sdd.py session sync-feature <id>`
+
+## Memória curta e longa (SessionManager)
+
+No início de cada interação, carregue o contexto persistido:
+
+```bash
+python3 .sdd/sdd.py session bootstrap              # se sessão nova ou no Cursor
+python3 .sdd/sdd.py session sync-feature <id>    # ao trocar feature ativa
+python3 .sdd/sdd.py session context [--feature <id>]
+python3 .sdd/sdd.py session status
+```
+
+Quando a sessão crescer demais (limiar em `.sdd/config.json` → `sessionMemory.tokenThreshold`),
+o hook `session-start` ou você pode arquivar:
+
+```bash
+python3 .sdd/sdd.py session checkpoint        # automático se ≥ limiar
+python3 .sdd/sdd.py session checkpoint --force
+```
+
+- **Curto prazo:** `.claude/session-context/` (gitignored)
+- **Longo prazo:** `.claude/knowledge/checkpoints/` + `learned-lessons.md`
+
+ADR: `docs/architecture/adr/001-session-context.md`. Spec: `memory/memory.md`.
 
 ## O que você PODE editar
 
 - `.claude/session-context/*`
 - `.claude/knowledge/*` (registrar aprendizados/decisões)
 - `specs/BACKLOG.md`
-- `specs/features/*/status.json` (transições e resultados/paths das revisões)
+- `specs/features/*/status.json` (transições **exceto** `reviews.*` — use CLI abaixo)
+
+## Registro automático de revisões
+
+Os agentes **QA** e **reviewer** persistem relatórios e atualizam `status.json`
+via harness — **não** delegue isso ao humano:
+
+```bash
+python3 .sdd/sdd.py review record <feature> \
+  --kind qa|traceability \
+  --verdict approved|changes_requested \
+  --report reviews/<arquivo>.md
+```
+
+Se o humano disser "QA validou" mas não houver arquivo em `reviews/` ou
+`status.reviews.qa.report` estiver vazio → reencaminhe ao `quality-assurance`
+para executar o fluxo automático completo.
 
 ## O que você NÃO PODE fazer
 
