@@ -271,7 +271,13 @@ def review_errors(root, feature_id, status):
         if not report:
             errors.append("review '{}' não possui relatório".format(kind))
             continue
-        report_path = canonical_path(root, report)
+        # `record_review` grava `report` relativo à pasta da feature
+        # (specs/features/<id>/...), não à raiz do repo — resolve nessa base
+        # primeiro; cai para a raiz do repo se não bater (status.json antigos
+        # gravados com o caminho completo como contorno manual deste bug).
+        report_path = canonical_path(feature_dir(root, feature_id), report)
+        if not is_within(report_path, expected_dir):
+            report_path = canonical_path(root, report)
         if not is_within(report_path, expected_dir):
             errors.append(
                 "relatório '{}' deve estar em specs/features/{}/reviews/".format(
