@@ -80,6 +80,12 @@ def spec_digest(root, feature_id):
                 text,
                 flags=re.MULTILINE,
             )
+            text = re.sub(
+                r"\s*\*\*Resultado(?: real)?:\*\*.*?(?=\r?\n\s*-\s*\[|(?:\r?\n)*\Z)",
+                "",
+                text,
+                flags=re.DOTALL,
+            )
             content = text.encode("utf-8")
         digest.update(filename.encode("utf-8"))
         digest.update(b"\0")
@@ -219,17 +225,32 @@ def parse_tasks(text, prefix):
     return tasks, unqualified_refs
 
 
+DEFAULT_COVERAGE_SCAN_DIRS = ["tests", "src"]
+
+
+def coverage_scan_dirs(root):
+    config_path = root / ".sdd" / "config.json"
+    dirs = list(DEFAULT_COVERAGE_SCAN_DIRS)
+    if config_path.is_file():
+        config = read_json(config_path)
+        configured = config.get("coverageScanDirs")
+        if isinstance(configured, list) and configured:
+            dirs = configured
+    return dirs
+
+
 def coverage_markers(root, prefix):
     covered = set()
     harness_tests = (root / "tests" / "harness").resolve(strict=False)
-    for base_name in ("tests", "src"):
+    for base_name in coverage_scan_dirs(root):
         base = root / base_name
         if not base.is_dir():
             continue
+        is_tests_dir = Path(base_name).name == "tests"
         for path in base.rglob("*"):
             if not path.is_file():
                 continue
-            if base_name == "src":
+            if not is_tests_dir:
                 lower_name = path.name.lower()
                 if (
                     ".test." not in lower_name

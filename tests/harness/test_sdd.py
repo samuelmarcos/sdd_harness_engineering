@@ -246,6 +246,112 @@ class SddHarnessTest(unittest.TestCase):
         status_path.write_text(json.dumps(status), encoding="utf-8")
         self.assertEqual(SDD.validate_feature(self.root, feature_id), [])
 
+    def test_record_review_report_path_resolves_for_validate(self):
+        """Regressão: `record_review` grava `report` relativo à pasta da
+        feature (specs/features/<id>/reviews/...) — `validate` precisa
+        resolver esse caminho na mesma base, não na raiz do repo. O teste
+        acima (`test_verified_requires_persisted_review_reports`) não pega
+        esse bug porque constrói `report` manualmente relativo à raiz (o
+        contorno manual, não o caminho real que `record_review` produz) —
+        este teste chama `record_review` de verdade."""
+        feature_id = self.create_feature()
+        self.approve(feature_id)
+        directory = self.root / "specs" / "features" / feature_id
+        tasks = directory / "tasks.md"
+        tasks.write_text(
+            tasks.read_text(encoding="utf-8").replace("- [ ]", "- [x]"),
+            encoding="utf-8",
+        )
+        (self.root / "tests" / "login.spec.py").write_text(
+            "# @covers F001-R1\n", encoding="utf-8"
+        )
+
+        reviews_dir = directory / "reviews"
+        reviews_dir.mkdir()
+        (reviews_dir / "qa.md").write_text("QA aprovado\n", encoding="utf-8")
+        (reviews_dir / "traceability.md").write_text(
+            "Rastreabilidade aprovada\n", encoding="utf-8"
+        )
+
+        SDD.record_review(self.root, feature_id, "qa", "approved", "reviews/qa.md")
+        SDD.record_review(
+            self.root, feature_id, "traceability", "approved", "reviews/traceability.md"
+        )
+
+        self.assertEqual(SDD.validate_feature(self.root, feature_id), [])
+        status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["status"], "verified")
+
+    def test_appending_resultado_real_does_not_invalidate_approval(self):
+        # Um implementer pode marcar a task [x] e anexar
+        # "**Resultado real:** ..." na mesma linha/bloco — texto legítimo de
+        # evidência, não mudança de escopo — mas sem normalização isso muda
+        # o conteúdo de tasks.md e invalida approval.specRevision (digest)
+        # mesmo com QA + reviewer já aprovados.
+        feature_id = self.create_feature()
+        self.activate(feature_id)
+        self.approve(feature_id)
+        path = self.root / "specs" / "features" / feature_id / "tasks.md"
+        original = path.read_text(encoding="utf-8")
+        path.write_text(
+            original.replace("- [ ]", "- [x]").rstrip("\n")
+            + " **Resultado real:** medição feita, 3 arquivos, zero regressão.\n",
+            encoding="utf-8",
+        )
+        allowed, message = SDD.guard(
+            {"tool_input": {"file_path": "src/login.py"}}, self.root
+        )
+        self.assertTrue(allowed, message)
+
+    def test_resultado_real_stops_at_next_task_bullet(self):
+        feature_id = self.create_feature()
+        directory = self.root / "specs" / "features" / feature_id
+        tasks_path = directory / "tasks.md"
+        tasks_path.write_text(
+            "- [x] F001-T1 — Entregar login (F001-R1) "
+            "**Resultado real:** ok, funcionou.\n"
+            "- [ ] F001-T2 — Segunda task (F001-R1)\n",
+            encoding="utf-8",
+        )
+        digest_before = SDD.spec_digest(self.root, feature_id)
+        tasks_path.write_text(
+            tasks_path.read_text(encoding="utf-8").replace(
+                "ok, funcionou.", "ok, funcionou, medi de novo e confirmei."
+            ),
+            encoding="utf-8",
+        )
+        digest_after = SDD.spec_digest(self.root, feature_id)
+        self.assertEqual(digest_before, digest_after)
+
+    def test_coverage_scan_dirs_config_extends_scan(self):
+        (self.root / ".sdd" / "config.json").write_text(
+            json.dumps(
+                {
+                    "protectedPaths": ["src"],
+                    "coverageScanDirs": ["tests", "src", "scripts"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        scripts_dir = self.root / "scripts"
+        scripts_dir.mkdir()
+        (scripts_dir / "test_extract.py").write_text(
+            "# @covers F001-R1\n", encoding="utf-8"
+        )
+        covered = SDD.coverage_markers(self.root, "F001")
+        self.assertIn("F001-R1", covered)
+
+    def test_coverage_scan_dirs_defaults_when_config_omits_key(self):
+        # Sem "coverageScanDirs" no config.json, comportamento idêntico ao de
+        # antes (só tests/ e src/) — não quebra projetos já configurados.
+        covered = SDD.coverage_markers(self.root, "F001")
+        self.assertEqual(covered, set())
+        (self.root / "tests" / "example.spec.ts").write_text(
+            "// @covers F001-R1\n", encoding="utf-8"
+        )
+        covered = SDD.coverage_markers(self.root, "F001")
+        self.assertIn("F001-R1", covered)
+
 
 if __name__ == "__main__":
     unittest.main()
