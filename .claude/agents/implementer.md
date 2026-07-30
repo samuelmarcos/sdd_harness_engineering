@@ -30,7 +30,12 @@ autorizado a editar diretórios de código protegidos (padrão: `src/`).
    - **GREEN:** implemente a mudança mínima que satisfaz a task.
    - **REFACTOR:** melhore o design mantendo a suíte verde.
    - Referencie o requisito no código quando útil (comentário `// R2: fallback`).
-   - Marque a task `[x]` em `tasks.md`.
+   - Marque a task `[x]` em `tasks.md` — **só o checkbox**. Nunca anexe
+     narrativa de resultado (`**Resultado real:** ...`) ao texto da task:
+     isso muda o conteúdo de `tasks.md` além do checkbox e invalida
+     `approval.specRevision` (digest), forçando reaprovação mesmo com QA+
+     reviewer já aprovados. Resultado real, números de medição e evidência
+     vão **só** em `progress/impl_<feature>.md`.
    - Registre RED/GREEN/REFACTOR em `progress/impl_<feature>.md`.
    - Persista contexto curto por task:
      `python3 .sdd/sdd.py session task-note --feature <id> --task FNNN-T<n> --note "resumo" --files arquivo1,arquivo2`
