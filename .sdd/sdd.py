@@ -446,6 +446,23 @@ def validate_feature(root, feature_id):
     return errors
 
 
+def unmet_review_criteria(root, feature_path, prefix):
+    """Tasks não marcadas `[x]` + requisitos sem `@covers` — mesmo critério
+    de aceite que `validate_feature` exige de features em REVIEW_REQUIRED.
+    Reusado por `record_review` pra nunca promover o status a 'verified'
+    com critérios de aceite pendentes (achado real: `record_review`
+    promovia QA+traceability aprovados direto pra 'verified' mesmo com
+    tasks incompletas ou requisito sem teste — `validate` só pegava o
+    problema DEPOIS que o status já mentia estar 'verified')."""
+    requirements_text = (feature_path / "requirements.md").read_text(encoding="utf-8")
+    tasks_text = (feature_path / "tasks.md").read_text(encoding="utf-8")
+    requirements, _ = parse_requirements(requirements_text, prefix)
+    tasks, _ = parse_tasks(tasks_text, prefix)
+    unchecked = [task_id for task_id, task in tasks.items() if not task["checked"]]
+    uncovered = requirements - coverage_markers(root, prefix)
+    return unchecked, uncovered
+
+
 def record_review(root, feature_id, kind, verdict, report):
     if kind not in {"qa", "traceability"}:
         raise ValueError("kind deve ser qa ou traceability")
@@ -483,7 +500,9 @@ def record_review(root, feature_id, kind, verdict, report):
         elif kind == "traceability":
             qa_status = reviews.get("qa", {}).get("status")
             if qa_status == "approved" and current in {"in_review", "in_progress"}:
-                status["status"] = "verified"
+                prefix = feature_prefix(feature_id)
+                unchecked, uncovered = unmet_review_criteria(root, feature_path, prefix)
+                status["status"] = "in_review" if (unchecked or uncovered) else "verified"
 
     write_json(status_path, status)
     return report_norm
