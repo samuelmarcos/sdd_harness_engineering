@@ -282,6 +282,45 @@ class SddHarnessTest(unittest.TestCase):
         status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
         self.assertEqual(status["status"], "verified")
 
+    def test_record_review_does_not_promote_to_verified_with_unmet_criteria(self):
+        """Regressão: `record_review` promovia o status pra 'verified' assim
+        que QA + traceability estivessem ambos 'approved', sem checar se as
+        tasks estavam de fato concluídas ou se os requisitos tinham
+        `@covers` — `validate` só detectava o problema DEPOIS, quando o
+        status.json já mentia estar 'verified' (achado real: feature com
+        task pendente por bloqueio externo, ex. ambiente sem credenciais
+        pra rodar uma medição real, ficou marcada 'verified' com QA+reviewer
+        aprovados mesmo assim). Task não marcada `[x]` deve manter o status
+        em 'in_review' (reviews aprovadas, mas critério de aceite pendente),
+        nunca pular pra 'verified' sozinho."""
+        feature_id = self.create_feature()
+        self.approve(feature_id)
+        directory = self.root / "specs" / "features" / feature_id
+        # Task propositalmente NÃO marcada [x] — simula tasks.md pendente.
+        (self.root / "tests" / "login.spec.py").write_text(
+            "# @covers F001-R1\n", encoding="utf-8"
+        )
+
+        reviews_dir = directory / "reviews"
+        reviews_dir.mkdir()
+        (reviews_dir / "qa.md").write_text("QA aprovado\n", encoding="utf-8")
+        (reviews_dir / "traceability.md").write_text(
+            "Rastreabilidade aprovada\n", encoding="utf-8"
+        )
+
+        SDD.record_review(self.root, feature_id, "qa", "approved", "reviews/qa.md")
+        SDD.record_review(
+            self.root, feature_id, "traceability", "approved", "reviews/traceability.md"
+        )
+
+        status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            status["status"], "in_review",
+            "reviews aprovadas não devem promover a 'verified' com task pendente",
+        )
+        errors = SDD.validate_feature(self.root, feature_id)
+        self.assertTrue(any("não concluídas" in error for error in errors))
+
     def test_appending_resultado_real_does_not_invalidate_approval(self):
         # Um implementer pode marcar a task [x] e anexar
         # "**Resultado real:** ..." na mesma linha/bloco — texto legítimo de
