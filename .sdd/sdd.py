@@ -463,6 +463,43 @@ def unmet_review_criteria(root, feature_path, prefix):
     return unchecked, uncovered
 
 
+DOC_IMPACT_RE = re.compile(
+    r"Requer atualiza(?:c|ç)[aã]o[:*\s]*\**\s*(.+)", re.IGNORECASE
+)
+
+
+def doc_impact_pending(root, feature_id, status):
+    """Lê o relatório de QA referenciado em `status.json` e procura a seção
+    "Impacto na documentação" -> "Requer atualização: sim/não". Retorna a
+    linha bruta se sinalizar 'sim' (mesmo como nota opcional/não-bloqueante),
+    senão `None`. Frágil por natureza (texto livre do QA, sem parser
+    formal) — é só um LEMBRETE impresso no terminal, nunca bloqueia nada.
+    Achado real (projeto derivado `automation-of-bidding-processes`):
+    `tech_writer` só era acionado quando alguém lia essa seção manualmente —
+    foi esquecido por uma sessão inteira antes deste lembrete existir.
+    Chamado por `command_review_record` logo após `traceability` promover a
+    feature a 'verified' — exatamente o momento em que o humano/leader está
+    olhando o terminal."""
+    qa = status.get("reviews", {}).get("qa", {})
+    report_rel = qa.get("report")
+    if not report_rel:
+        return None
+    report_path = (feature_dir(root, feature_id) / report_rel).resolve(strict=False)
+    if not report_path.is_file():
+        return None
+    try:
+        text = report_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    match = DOC_IMPACT_RE.search(text)
+    if not match:
+        return None
+    line = match.group(1).strip().splitlines()[0].strip()
+    if re.search(r"\bsim\b", line, re.IGNORECASE):
+        return line
+    return None
+
+
 def record_review(root, feature_id, kind, verdict, report):
     if kind not in {"qa", "traceability"}:
         raise ValueError("kind deve ser qa ou traceability")
@@ -601,6 +638,19 @@ def command_review_record(args):
             args.kind, args.verdict, args.feature, report
         )
     )
+    if args.kind == "traceability" and args.verdict == "approved":
+        status = read_json(feature_dir(args.root, args.feature) / "status.json")
+        if status.get("status") == "verified":
+            pending = doc_impact_pending(args.root, args.feature, status)
+            if pending:
+                print(
+                    "⚠️  QA sinalizou impacto documental pendente: {} "
+                    "— acione tech_writer antes de marcar 'done' "
+                    "(specs/features/{}/reviews/, seção 'Impacto na documentação').".format(
+                        pending, args.feature
+                    ),
+                    file=sys.stderr,
+                )
     return 0
 
 

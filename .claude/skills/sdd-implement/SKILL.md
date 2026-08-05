@@ -53,6 +53,22 @@ Executa a implementação de uma feature **com spec aprovada**.
     `specs/features/<id>/reviews/qa-*.md` e rodar
     `python3 .sdd/sdd.py review record <id> --kind qa --verdict approved --report ...`
     **sem** esperar pedido do humano.
+12. **Acione o `reviewer`** (rastreabilidade) do mesmo jeito — não pare em 11.
+13. **Feche o ciclo** (não pule mesmo executando os passos você mesmo, sem
+    invocar a skill `sdd-review` separadamente — esta é a ÚNICA skill que
+    cobre isso se você não chamar `sdd-review` à parte):
+    - Confirme `status.json` em `verified` (`review record --kind traceability`
+      já promove sozinho quando QA + reviewer aprovam e tasks/`@covers`
+      estão completos).
+    - Marque `done`, atualize `specs/BACKLOG.md` e
+      `.claude/knowledge/learned-lessons.md`.
+    - **Leia a seção "Impacto na documentação" do relatório de QA**
+      (`specs/features/<id>/reviews/qa-*.md`) — se disser "sim"/"requer
+      atualização" (ou sugerir doc mesmo como nota não-bloqueante), **acione
+      o `tech_writer` agora**, não deixe pendente. Isso é fácil de esquecer
+      porque não bloqueia o fechamento — achado real (projeto derivado
+      `automation-of-bidding-processes`): features tiveram o passo pulado
+      por inteiro numa sessão inteira antes deste lembrete existir.
 
 ## Disciplina
 
@@ -66,4 +82,7 @@ Executa a implementação de uma feature **com spec aprovada**.
 - Todas as tasks `[x]`, testes verdes.
 - Resumo dos arquivos tocados (do `progress/impl_<id>.md`).
 - QA deve persistir relatório automaticamente (`reviews/` + `review record`).
-- Se QA já aprovou, acione o `reviewer` para traceability.
+- Reviewer acionado, `status.json` em `verified`, `done` marcado, `BACKLOG.md`
+  + `learned-lessons.md` atualizados.
+- `tech_writer` acionado se o relatório de QA sinalizou impacto documental
+  (passo 13) — não deixe essa checagem implícita.
