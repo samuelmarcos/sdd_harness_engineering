@@ -1,7 +1,10 @@
 import importlib.util
+import io
 import json
 import tempfile
+import types
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 
@@ -320,6 +323,90 @@ class SddHarnessTest(unittest.TestCase):
         )
         errors = SDD.validate_feature(self.root, feature_id)
         self.assertTrue(any("não concluídas" in error for error in errors))
+
+    def test_doc_impact_pending_detects_sim_and_ignores_nao(self):
+        """`doc_impact_pending` é o lembrete que faltava: achado real (projeto
+        derivado) — QA sinalizava "Requer atualização: sim" pra uma env var
+        nova e ninguém acionava `tech_writer` — o sinal existia no relatório
+        mas nada chamava atenção pra ele no momento certo (rodando
+        `review record`). Confirma extração da linha quando "sim" aparece
+        (mesmo como nota não-bloqueante) e `None` quando é "não"."""
+        feature_id = self.create_feature()
+        directory = self.root / "specs" / "features" / feature_id
+        reviews_dir = directory / "reviews"
+        reviews_dir.mkdir()
+
+        (reviews_dir / "qa-sim.md").write_text(
+            "### Impacto na documentação\n"
+            "- **Requer atualização:** sim (menor).\n"
+            "- **Motivo:** nova env var não documentada.\n",
+            encoding="utf-8",
+        )
+        status_sim = {"reviews": {"qa": {"report": "reviews/qa-sim.md"}}}
+        result = SDD.doc_impact_pending(self.root, feature_id, status_sim)
+        self.assertIsNotNone(result)
+        self.assertIn("sim", result.lower())
+
+        (reviews_dir / "qa-nao.md").write_text(
+            "### Impacto na documentação\n"
+            "- **Requer atualização:** não.\n"
+            "- **Motivo:** mudança de UI pura, sem contrato novo.\n",
+            encoding="utf-8",
+        )
+        status_nao = {"reviews": {"qa": {"report": "reviews/qa-nao.md"}}}
+        self.assertIsNone(SDD.doc_impact_pending(self.root, feature_id, status_nao))
+
+        # Sem relatório de QA referenciado (ex.: kind ainda pendente) — não quebra.
+        self.assertIsNone(SDD.doc_impact_pending(self.root, feature_id, {"reviews": {}}))
+
+    def test_command_review_record_warns_on_pending_doc_impact(self):
+        """Integração: `command_review_record` (o comando de verdade rodado
+        pelos subagentes QA/reviewer) imprime o lembrete no stderr quando a
+        feature vira 'verified' e o QA sinalizou impacto documental — no
+        momento exato em que o humano/leader está olhando o terminal,
+        em vez de depender de alguém ler o relatório manualmente depois."""
+        feature_id = self.create_feature()
+        self.approve(feature_id)
+        directory = self.root / "specs" / "features" / feature_id
+        tasks = directory / "tasks.md"
+        tasks.write_text(
+            tasks.read_text(encoding="utf-8").replace("- [ ]", "- [x]"),
+            encoding="utf-8",
+        )
+        (self.root / "tests" / "login.spec.py").write_text(
+            "# @covers F001-R1\n", encoding="utf-8"
+        )
+
+        reviews_dir = directory / "reviews"
+        reviews_dir.mkdir()
+        (reviews_dir / "qa.md").write_text(
+            "### Impacto na documentação\n"
+            "- **Requer atualização:** sim.\n"
+            "- **Motivo:** nova env var não documentada.\n",
+            encoding="utf-8",
+        )
+        (reviews_dir / "traceability.md").write_text(
+            "Rastreabilidade aprovada\n", encoding="utf-8"
+        )
+
+        qa_args = types.SimpleNamespace(
+            root=self.root, feature=feature_id, kind="qa",
+            verdict="approved", report="reviews/qa.md",
+        )
+        SDD.command_review_record(qa_args)
+
+        trace_args = types.SimpleNamespace(
+            root=self.root, feature=feature_id, kind="traceability",
+            verdict="approved", report="reviews/traceability.md",
+        )
+        captured = io.StringIO()
+        with redirect_stderr(captured):
+            SDD.command_review_record(trace_args)
+
+        status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["status"], "verified")
+        self.assertIn("impacto documental pendente", captured.getvalue())
+        self.assertIn("tech_writer", captured.getvalue())
 
     def test_appending_resultado_real_does_not_invalidate_approval(self):
         # Um implementer pode marcar a task [x] e anexar
