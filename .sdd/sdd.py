@@ -11,6 +11,33 @@ import sys
 from pathlib import Path
 
 
+def _forcar_utf8_na_saida():
+    """Garante UTF-8 em stdout/stderr.
+
+    No Windows o console usa cp1252 por padrao, e qualquer mensagem do harness
+    com acento ou emoji derruba o processo antes de imprimir o motivo do erro:
+
+        UnicodeEncodeError: 'charmap' codec can't encode character '❌'
+
+    O efeito e perverso: o comando falha exatamente quando tem algo importante
+    a dizer, e o traceback substitui a lista de erros de validacao. Reconfigurar
+    aqui cobre todos os prints de uma vez, em vez de caçar emoji a emoji.
+    """
+    for fluxo in (sys.stdout, sys.stderr):
+        reconfigurar = getattr(fluxo, "reconfigure", None)
+        if reconfigurar is None:
+            continue  # stream substituido (pytest, pipe custom): nao mexe
+        try:
+            reconfigurar(encoding="utf-8", errors="replace")
+        except (ValueError, OSError):
+            # Stream ja fechado ou sem suporte: seguir sem UTF-8 e melhor que
+            # abortar o comando inteiro por causa da saida.
+            pass
+
+
+_forcar_utf8_na_saida()
+
+
 STATUS_VALUES = {
     "pending",
     "awaiting_approval",

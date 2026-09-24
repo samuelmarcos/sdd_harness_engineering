@@ -94,6 +94,42 @@ Para cada eixo, proponha 2–3 opções com trade-offs e aguarde decisão:
 
 Quando um eixo abrir decisão ramificada → rode `/clarificar`.
 
+### Fase 2.5G — Plugins Claude Code recomendados
+
+Com o tech stack definido, identifique plugins relevantes do catálogo abaixo e apresente ao usuário **antes** de continuar.
+
+> **Por que agora?** Plugins estendem os agentes e skills com contexto especializado (design system, framework-specific patterns, UI/UX). Instalar antes do desenvolvimento evita retrabalho.
+
+Apresente a lista filtrada pela stack escolhida e oriente:
+
+```
+Instale via terminal (fora do Claude Code) antes de iniciar:
+  claude plugin add <owner/plugin>
+```
+
+Pergunte com `AskUserQuestion`:
+- **Instalar agora** (sair, rodar os comandos, voltar) *(Recomendado)*
+- **Seguir sem plugins** — instalar depois manualmente
+- **Já instalei** — continuar
+
+---
+
+**Catálogo de plugins por tecnologia:**
+
+| Tecnologia / Contexto | Plugin | Quando sugerir |
+|---|---|---|
+| Qualquer frontend (React, Vue, Svelte…) | `claude plugin add anthropic/frontend-design` | Sempre que tiver UI |
+| UI/UX avançado, design systems | `claude plugin add nextlevelbuilder/ui-ux-pro-max-skill` | Frontend com design system ou produto consumer |
+| Next.js / React full-stack | `claude plugin add anthropic/frontend-design` + `nextlevelbuilder/ui-ux-pro-max-skill` | Stack Next.js |
+| SaaS (auth, billing, multi-tenant) | Skill interna `saas-standards` já disponível | Sempre que o produto for SaaS |
+| Supabase | Skill interna `supabase` já disponível | Stack com Supabase |
+| Visualizações / dashboards | Skill interna `dataviz` já disponível | Charts, KPIs, analytics |
+
+> **Nota:** skills internas (sem `claude plugin add`) já estão no harness — não precisam ser instaladas.
+> Para outros frameworks, oriente o usuário a buscar em `claude.ai/plugins` ou no repositório da comunidade.
+
+---
+
 ### Fase 3G — Camada agêntica
 
 Proponha o harness SDD para o projeto:
@@ -136,6 +172,12 @@ Só reabra uma pergunta se o assessment estiver incompleto em algum eixo.
 
 Mesma tabela da Rota A, mas partindo do as-is mapeado. Proponha evoluções, não
 redesenhos completos, a menos que o usuário sinalize intenção de reescrever.
+
+### Fase 3.5B — Plugins Claude Code recomendados (igual à Fase 2.5G)
+
+Com a stack as-is confirmada, aplique o mesmo catálogo e fluxo da **Fase 2.5G**.
+
+---
 
 ### Fase 4B — Camada agêntica (igual à Fase 3G)
 
