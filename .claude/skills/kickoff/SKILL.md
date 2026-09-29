@@ -147,7 +147,7 @@ Proponha o harness SDD para o projeto:
 
 ### Fase 1B — Mapeamento as-is
 
-**Obrigatório:** leia e execute **`.claude/skills/mapping/SKILL.md`** por completo
+**Obrigatório:** leia e execute **`.claude/skills/mapear/SKILL.md`** por completo
 (Comando `/mapear`). Não substitua por grep ad hoc — a skill define entrevista,
 gap analysis e saídas (`assessment.md`, ADRs, `## Contexto do módulo`).
 

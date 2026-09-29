@@ -69,7 +69,7 @@ Config: `.sdd/config.json` → `sessionMemory` (feature flag `enabled`).
 | SDD implement | `sdd-implement` | Spec aprovada → código |
 | SDD review | `sdd-review` | Pós-implementação → QA + reviewer |
 
-> **`/mapear`** — skill `.claude/skills/mapping/SKILL.md`. Leia e execute por
+> **`/mapear`** — skill `.claude/skills/mapear/SKILL.md`. Leia e execute por
 > completo; não substitua por grep ad hoc.
 
 **Prelude do projeto** (uma vez ou após mudança grande):
