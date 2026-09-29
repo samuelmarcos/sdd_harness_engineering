@@ -147,6 +147,15 @@ O hook `.claude/hooks/pre-tool-use.sh` bloqueia edições em paths de
 `.sdd/config.json` quando a feature não está em `approved`/`in_progress` ou a
 spec mudou depois da aprovação.
 
+> **Plugins instalados — não bypass o SDD:**
+>
+> | Situação | Use | Não use |
+> |---|---|---|
+> | Revisar uma feature SDD | `sdd-review` (executa `review record` + atualiza `status.json`) | `superpowers:requesting-code-review` (não conhece FNNN-R\<n\> nem `status.json`) |
+> | Implementar algo em `src/` ou `protectedPaths` | `sdd-init` → `sdd-implement` | `superpowers:executing-plans`, `superpowers:subagent-driven-development` (não passam pelo approval gate) |
+> | Mapear codebase (brownfield) | `/mapear` (produz `assessment.md` + ADRs exigidos pelo `sdd-init`) | `claude-mem:learn-codebase` (builds corpus semântico — complementar, não substituto) |
+> | Planejamento fora de `protectedPaths` | `superpowers:writing-plans` ✅ | — |
+
 **Sequência típica:**
 
 1. Prelude: `/integracoes` (opc.) → `/kickoff` → `/mapear` → `/roadmap`
