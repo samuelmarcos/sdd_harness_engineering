@@ -52,7 +52,7 @@ python3 -m unittest discover -s tests/harness -v
 | `tests/harness/test_sdd.py` | guard, approve, validate, reviews |
 | `tests/harness/test_session_manager.py` | bootstrap, placeholders, checkpoint, task-note, sync-feature |
 
-Spec: `memory/memory.md`, ADR `docs/architecture/adr/001-session-context.md`.
+Spec: `docs/memory.md`, ADR `docs/architecture/adr/001-session-context.md`.
 
 ## Comando de testes do projeto
 

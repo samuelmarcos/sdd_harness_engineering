@@ -81,7 +81,7 @@ flowchart TD
 
 ## Memória de sessão
 
-Infraestrutura paralela ao SDD — spec `memory/memory.md`, ADR `docs/architecture/adr/001-session-context.md`.
+Infraestrutura paralela ao SDD — spec `docs/memory.md`, ADR `docs/architecture/adr/001-session-context.md`.
 
 ```mermaid
 flowchart TD
@@ -173,7 +173,7 @@ Harness (veículo)                      SDD (processo)                    Códig
 .claude/hooks/      → disciplina       specs/features/*/status.json      progress/
 session-context/    → memória curta (sync-feature, task-note)
 checkpoints/        → pós-checkpoint
-memory/memory.md    → spec operacional de memória
+docs/memory.md    → spec operacional de memória
 ```
 
 ---

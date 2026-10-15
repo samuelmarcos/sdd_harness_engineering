@@ -65,7 +65,7 @@ resume_strategy: summary   # ou step-object
 ```
 
 O harness carrega `.claude/session-context/features/<feature_id>/context.md`
-via `SessionManager` (ver `memory/memory.md`).
+via `SessionManager` (ver `docs/memory.md`).
 
 Se a decisão estrutural ainda estiver em aberto → **não** feche o design; peça
 `/clarificar` ao `leader`.

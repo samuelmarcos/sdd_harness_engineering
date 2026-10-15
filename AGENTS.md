@@ -18,7 +18,7 @@ Harness (veículo)                      SDD (processo)
 session-context/    → memória curta    progress/
 ```
 
-**Memória de sessão** (spec `memory/memory.md`, ADR `docs/architecture/adr/001-session-context.md`):
+**Memória de sessão** (spec `docs/memory.md`, ADR `docs/architecture/adr/001-session-context.md`):
 
 | Nível | Local | Git | Conteúdo |
 |-------|-------|-----|----------|

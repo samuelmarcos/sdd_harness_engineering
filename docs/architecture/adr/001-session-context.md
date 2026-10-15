@@ -28,7 +28,7 @@
   - `sync-feature <id>`, `task-note --feature ID --task FNNN-T1 --note "..." [--files a,b]`
 - **Feature flag:** `sessionMemory.enabled` em `.sdd/config.json` (default: `true`)
 - **Testes:** `tests/harness/test_session_manager.py`, `tests/harness/test_sdd.py`
-- **Spec operacional:** `memory/memory.md`
+- **Spec operacional:** `docs/memory.md`
 - **Consequências:**
   - Checkpoint usa sumarização determinística (sem LLM) — suficiente para template;
     projetos podem estender com sumarizador externo depois.

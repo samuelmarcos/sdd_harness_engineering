@@ -197,7 +197,7 @@ Se o projeto **já tem código** (não é greenfield puro):
 
 ## Memória de sessão
 
-Spec: `memory/memory.md` · ADR: `docs/architecture/adr/001-session-context.md`
+Spec: `docs/memory.md` · ADR: `docs/architecture/adr/001-session-context.md`
 
 | Nível | Pasta | Git |
 |-------|-------|-----|

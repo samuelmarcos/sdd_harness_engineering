@@ -62,7 +62,7 @@ python3 .sdd/sdd.py session checkpoint --force
 - **Curto prazo:** `.claude/session-context/` (gitignored)
 - **Longo prazo:** `.claude/knowledge/checkpoints/` + `learned-lessons.md`
 
-ADR: `docs/architecture/adr/001-session-context.md`. Spec: `memory/memory.md`.
+ADR: `docs/architecture/adr/001-session-context.md`. Spec: `docs/memory.md`.
 
 ## O que você PODE editar
 
