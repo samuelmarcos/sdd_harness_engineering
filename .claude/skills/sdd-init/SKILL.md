@@ -20,7 +20,7 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
    Se a feature vai alterar paths em **`.sdd/config.json`** (padrão: `src/`):
 
    - Leia `docs/architecture/assessment.md`. Se **ausente** ou o módulo alvo **não**
-     estiver descrito → leia e execute **`.claude/skills/mapping/SKILL.md`**
+     estiver descrito → leia e execute **`.claude/skills/mapear/SKILL.md`**
      (repositório inteiro ou sub-área focal).
    - Anote no `design.md` (seção **Contexto as-is**) os achados relevantes + link
      ao assessment.

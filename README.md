@@ -276,7 +276,7 @@ Decisões ramificadas → skill **`/clarificar`**.
 ### Rota B — Brownfield (código existente)
 
 **1. Mapeamento as-is (obrigatório)** — executa **`/mapear`**
-(`.claude/skills/mapping/SKILL.md`). Não substitua por grep ad hoc.
+(`.claude/skills/mapear/SKILL.md`). Não substitua por grep ad hoc.
 
 Produz: stack inferida, maturidade nos 5 eixos, dívidas, ADRs retroativos e
 `docs/architecture/assessment.md`. Só pergunta o que o código não revela (North Star,

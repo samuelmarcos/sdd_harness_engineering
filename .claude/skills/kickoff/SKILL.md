@@ -96,37 +96,39 @@ Quando um eixo abrir decisão ramificada → rode `/clarificar`.
 
 ### Fase 2.5G — Plugins Claude Code recomendados
 
-Com o tech stack definido, identifique plugins relevantes do catálogo abaixo e apresente ao usuário **antes** de continuar.
+Com o tech stack definido, filtre o catálogo abaixo pela stack escolhida e **verifique primeiro quais já estão instalados**:
 
-> **Por que agora?** Plugins estendem os agentes e skills com contexto especializado (design system, framework-specific patterns, UI/UX). Instalar antes do desenvolvimento evita retrabalho.
-
-Apresente a lista filtrada pela stack escolhida e oriente:
-
-```
-Instale via terminal (fora do Claude Code) antes de iniciar:
-  claude plugin add <owner/plugin>
+```bash
+claude plugin list
 ```
 
-Pergunte com `AskUserQuestion`:
+Apresente apenas os **não instalados** com o comando de instalação. Para os já instalados, mostre só a forma de invocar.
+
+> **Por que agora?** Plugins estendem agentes e skills com contexto especializado (design system, framework patterns, UI/UX). Instalar antes do desenvolvimento evita retrabalho.
+
+Pergunte com `AskUserQuestion` apenas se houver plugins **não instalados** para a stack escolhida:
 - **Instalar agora** (sair, rodar os comandos, voltar) *(Recomendado)*
 - **Seguir sem plugins** — instalar depois manualmente
-- **Já instalei** — continuar
+- **Todos já instalados** — continuar
+
+Se todos os plugins relevantes já estiverem instalados, pule a pergunta e siga direto.
 
 ---
 
 **Catálogo de plugins por tecnologia:**
 
-| Tecnologia / Contexto | Plugin | Quando sugerir |
-|---|---|---|
-| Qualquer frontend (React, Vue, Svelte…) | `claude plugin add anthropic/frontend-design` | Sempre que tiver UI |
-| UI/UX avançado, design systems | `claude plugin add nextlevelbuilder/ui-ux-pro-max-skill` | Frontend com design system ou produto consumer |
-| Next.js / React full-stack | `claude plugin add anthropic/frontend-design` + `nextlevelbuilder/ui-ux-pro-max-skill` | Stack Next.js |
-| SaaS (auth, billing, multi-tenant) | Skill interna `saas-standards` já disponível | Sempre que o produto for SaaS |
-| Supabase | Skill interna `supabase` já disponível | Stack com Supabase |
-| Visualizações / dashboards | Skill interna `dataviz` já disponível | Charts, KPIs, analytics |
+| Tecnologia / Contexto | Plugin | Instalação | Invocação |
+|---|---|---|---|
+| Qualquer frontend (React, Vue, Svelte…) | `anthropic/frontend-design` | `claude plugin add anthropic/frontend-design` | `/frontend-design` |
+| UI/UX avançado, design systems, produto consumer | `nextlevelbuilder/ui-ux-pro-max-skill` | `claude plugin add nextlevelbuilder/ui-ux-pro-max-skill` | `/ui-ux-pro-max` |
+| Frontend — auditoria e polimento de UI | `impeccable` (plugin) | `claude plugin add impeccable` | `/impeccable` |
+| Next.js / React full-stack | `anthropic/frontend-design` + `nextlevelbuilder/ui-ux-pro-max-skill` + `impeccable` | ver acima | ver acima |
+| SaaS (auth, billing, multi-tenant) | Skill interna `saas-standards` | já no harness | `/saas-standards` |
+| Supabase | Skill interna `supabase` | já no harness | `/supabase` |
+| Visualizações / dashboards | Skill interna `dataviz` | já no harness | `/dataviz` |
 
-> **Nota:** skills internas (sem `claude plugin add`) já estão no harness — não precisam ser instaladas.
-> Para outros frameworks, oriente o usuário a buscar em `claude.ai/plugins` ou no repositório da comunidade.
+> **Nota:** skills internas (sem `claude plugin add`) já estão no harness.
+> Para outros frameworks, oriente o usuário a buscar em `claude.ai/plugins`.
 
 ---
 
@@ -145,7 +147,7 @@ Proponha o harness SDD para o projeto:
 
 ### Fase 1B — Mapeamento as-is
 
-**Obrigatório:** leia e execute **`.claude/skills/mapping/SKILL.md`** por completo
+**Obrigatório:** leia e execute **`.claude/skills/mapear/SKILL.md`** por completo
 (Comando `/mapear`). Não substitua por grep ad hoc — a skill define entrevista,
 gap analysis e saídas (`assessment.md`, ADRs, `## Contexto do módulo`).
 

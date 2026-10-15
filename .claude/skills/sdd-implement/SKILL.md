@@ -27,7 +27,7 @@ Executa a implementação de uma feature **com spec aprovada**.
 3. **Leia** `requirements.md`, `design.md`, `tasks.md`, `CLAUDE.md` e
    `docs/architecture/assessment.md`.
 4. **`/mapear` focal (se faltou no sdd-init):** leia e execute
-   **`.claude/skills/mapping/SKILL.md`** nos arquivos que as tasks vão tocar +
+   **`.claude/skills/mapear/SKILL.md`** nos arquivos que as tasks vão tocar +
    vizinhos imediatos. Registre em `progress/impl_<id>.md` → seção
    **`## Contexto do módulo`** (convenções, acoplamentos, efeitos colaterais).
 5. **Transicione** `status.json` para `in_progress` (atualize `updated`).

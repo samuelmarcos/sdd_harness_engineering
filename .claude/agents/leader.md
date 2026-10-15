@@ -116,7 +116,7 @@ Antes de **`sdd-init`** ou **`sdd-implement`** em feature que altera paths de
 
 1. Confirme `docs/architecture/assessment.md` existe e cobre o bounded context.
 2. Se não existir, estiver desatualizado ou o módulo for desconhecido → delegue
-   leitura/execução de **`.claude/skills/mapping/SKILL.md`** (global ou focal).
+   leitura/execução de **`.claude/skills/mapear/SKILL.md`** (global ou focal).
 3. Registre em `.claude/session-context/decisions.md` se o humano pediu atalho
    (ex.: teste de fluxo) — isso **não** dispensa `/mapear` na implementação real.
 

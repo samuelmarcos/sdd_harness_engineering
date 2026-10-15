@@ -34,7 +34,9 @@
       "Bash(npm test)",
       "Bash(npm run test:*)",
       "Bash(python3 .sdd/sdd.py *)",
+      "Bash(py -3 .sdd/sdd.py *)",
       "Bash(python3 -m unittest discover -s tests/harness*)",
+      "Bash(py -3 -m unittest discover -s tests/harness*)",
       "Bash(git status)",
       "Bash(git diff*)",
       "Bash(git log*)"
