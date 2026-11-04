@@ -29,7 +29,13 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
      relatórios via `reviews/` + `sdd.py review record` — **automático**)
    - Revisão OK (QA ✅ + Reviewer ✅, relatórios registrados) → você marca `done`
    - Após `done` (ou `/kickoff`, `/clarificar`, `/integracoes`) com **impacto documental**
-     → delegue ao **`tech_writer`** (APIs, contratos, env vars, fluxos, arquitetura)
+     → delegue ao **`tech_writer`** com brief:
+     ```
+     Gatilho: <feature-id done | kickoff | clarificar | integracoes>
+     Impacto: <o que mudou — API, contrato, env var, módulo, breaking change>
+     Relatório QA: specs/features/<id>/reviews/qa-<timestamp>.md (se feature)
+     design.md: specs/features/<id>/design.md (se feature)
+     ```
    - Pedido explícito de documentação → **`tech_writer`**
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
    - `global/working.md` — foco e notas globais da sessão

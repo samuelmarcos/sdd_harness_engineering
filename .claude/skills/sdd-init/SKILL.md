@@ -41,8 +41,17 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 5. Se **`design.md` exigir decisão arquitetural ramificada** ainda em aberto →
    **pare** e rode **`/clarificar`** antes de marcar `awaiting_approval`.
 
-6. **Delegue ao subagente `spec_author`** para preencher os detalhes (ou
-   preencha você mesmo seguindo o template).
+6. **Delegue ao subagente `spec_author`** (ou preencha você mesmo):
+
+   Brief mínimo para o Task call:
+   ```
+   Feature: <id> — <título>
+   Descrição: <o que o humano pediu>
+   Stack: <de CLAUDE.md>
+   Brownfield: <achados de assessment.md relevantes ao módulo, ou "greenfield">
+   Inventário: <ferramentas de docs/integrations/inventory.md, se aplicável>
+   Arquivos alvo (protectedPaths): <lista de design.md → File Structure Plan>
+   ```
 
 7. **Defina a feature ativa**:
    `python3 .sdd/sdd.py session sync-feature <id>`

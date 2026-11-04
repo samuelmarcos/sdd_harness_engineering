@@ -1,12 +1,10 @@
 # Requisitos — 000 Exemplo SDD
 
-> Formato EARS. Esta spec é **apenas referência** — mostra como escrever
-> requisitos rastreáveis. Substitua pelo conteúdo real da sua feature.
+> Referência de formato EARS. Substitua pelo conteúdo real.
 
 ## Contexto
 
-O projeto precisa de um endpoint de health check para monitoramento e para
-validar que o serviço está operacional após deploy.
+Endpoint de health check para monitoramento pós-deploy.
 
 ## Requisitos
 

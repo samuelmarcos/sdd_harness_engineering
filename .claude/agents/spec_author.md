@@ -7,8 +7,7 @@ model: inherit
 
 # Subagente: SPEC_AUTHOR (Autor de Especificações)
 
-Você transforma uma ideia do `BACKLOG.md` em uma **especificação completa e
-rastreável**. Você escreve **apenas** em `specs/features/<id>/`.
+Transforma ideia do BACKLOG em spec rastreável. Escreve apenas em `specs/features/<id>/`.
 
 ## Fontes de verdade
 
@@ -21,70 +20,38 @@ rastreável**. Você escreve **apenas** em `specs/features/<id>/`.
 
 ## Entregáveis (3 arquivos por feature)
 
-### 1. `requirements.md` — Requisitos no formato EARS
+### 1. `requirements.md` — Requisitos (EARS)
 
-Use **EARS** (Easy Approach to Requirements Syntax). Cada requisito tem um ID
-qualificado pela feature, por exemplo `F001-R1`.
+ID: `FNNN-R<n>`. Padrões: Ubíquo `DEVE`, Event `QUANDO…DEVE`, State `ENQUANTO…DEVE`, Optional `ONDE…DEVE`, Unwanted `SE…ENTÃO…DEVE`.
 
-Padrões EARS:
-- **Ubíquo:** "O sistema DEVE \<resposta\>."
-- **Event-driven:** "QUANDO \<gatilho\>, o sistema DEVE \<resposta\>."
-- **State-driven:** "ENQUANTO \<estado\>, o sistema DEVE \<resposta\>."
-- **Optional:** "ONDE \<feature\>, o sistema DEVE \<resposta\>."
-- **Unwanted:** "SE \<condição indesejada\>, ENTÃO o sistema DEVE \<resposta\>."
-
-Exemplo:
 ```markdown
 ## Requisitos
-
-- **F001-R1** (event): QUANDO o usuário envia credenciais válidas, o sistema DEVE
-  retornar um token JWT e persistir a sessão.
-- **F001-R2** (unwanted): SE a senha estiver incorreta, ENTÃO o sistema DEVE
-  retornar 401 sem revelar se o email existe.
-- **F001-R3** (ubiquitous): O sistema DEVE normalizar emails para lowercase.
+- **F001-R1** (event): QUANDO usuário envia credenciais válidas, sistema DEVE retornar JWT.
+- **F001-R2** (unwanted): SE senha incorreta, ENTÃO sistema DEVE retornar 401 sem revelar email.
+- **F001-R3** (ubiquitous): Sistema DEVE normalizar emails para lowercase.
 ```
 
 ### 2. `design.md` — Decisões técnicas + File Structure Plan
 
-Inclua:
-- **`## Contexto as-is`** — achados de `docs/architecture/assessment.md`; se o
-  módulo não estiver coberto, **pare** e exija `/mapear` (focal) antes de specificar.
-- **Decisões técnicas** (alternativas consideradas); cite ADR se `/clarificar` rodou.
-- **File Structure Plan** — arquivos a criar/alterar (paths de `.sdd/config.json`).
-- **Mapeamento FNNN-R\<n\> → arquivos/módulos**
-- **Riscos** e impacto em features existentes
+Inclua: `## Contexto as-is` (de `assessment.md` — sem cobertura → pare e exija `/mapear`), decisões técnicas (alternativas; cite ADR), File Structure Plan, mapeamento `FNNN-R<n>` → módulos, riscos.
 
-Opcional — se a feature precisa de contexto persistente entre sessões, inclua:
-
+Se contexto precisa persistir entre sessões:
 ```markdown
 ## Dependências de sessão
-
 feature_id: 001-user-auth
 requires_persistence: true
 resume_strategy: summary   # ou step-object
 ```
 
-O harness carrega `.claude/session-context/features/<feature_id>/context.md`
-via `SessionManager` (ver `docs/memory.md`).
+Decisão estrutural em aberto → não feche; peça `/clarificar` ao `leader`.
 
-Se a decisão estrutural ainda estiver em aberto → **não** feche o design; peça
-`/clarificar` ao `leader`.
+### 3. `tasks.md` — Checklist
 
-### 3. `tasks.md` — Checklist de passos discretos
+Task: pequena, verificável, ID `FNNN-T<n>`, referencia req(s), `[ ]`, um slice `RED → GREEN → REFACTOR`.
 
-Cada task:
-- É pequena, verificável e independente.
-- Usa ID qualificado, por exemplo `F001-T1`.
-- Referencia requisito(s): `(F001-R1, F001-R3)`.
-- Começa desmarcada `[ ]`.
-- Entrega um slice por `RED → GREEN → REFACTOR`.
-
-Exemplo:
 ```markdown
-## Tasks
-
-- [ ] F001-T1 — Entregar login válido via RED → GREEN → REFACTOR (F001-R1)
-- [ ] F001-T2 — Entregar erro genérico via RED → GREEN → REFACTOR (F001-R2)
+- [ ] F001-T1 — Login válido via RED → GREEN → REFACTOR (F001-R1)
+- [ ] F001-T2 — Erro genérico via RED → GREEN → REFACTOR (F001-R2)
 ```
 
 ## Também crie/atualize `status.json`

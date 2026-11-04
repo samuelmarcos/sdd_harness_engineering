@@ -2,10 +2,9 @@
 
 ## Decisões técnicas
 
-- **Endpoint mínimo** em `src/` — sem framework pesado no template; adapte ao
-  stack do seu projeto (Express, NestJS, etc.).
-- **Timestamp UTC** via `new Date().toISOString()` — simples e interoperável.
-- **503 apenas se** houver flag interna de shutdown (exemplo didático).
+- Endpoint mínimo em `src/` — adapte ao stack (Express, NestJS, Go…).
+- Timestamp UTC via `new Date().toISOString()`.
+- 503 apenas se flag interna de shutdown (exemplo didático).
 
 ## File Structure Plan
 
