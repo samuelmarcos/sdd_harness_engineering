@@ -1,4 +1,4 @@
-# memory/memory.md — Memória de sessão (curto e longo prazo)
+# docs/memory.md — Memória de sessão (curto e longo prazo)
 
 > Spec operacional do harness SDD. ADR: `docs/architecture/adr/001-session-context.md`.
 

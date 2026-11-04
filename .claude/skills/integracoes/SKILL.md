@@ -101,7 +101,7 @@ Se o usuário não tiver MCP, colete em lote curto:
 
 **Nunca escreva** `.mcp.json` com tokens reais — oriente o usuário a criar localmente.
 
-Template de inventário — use `docs/integrations/_templates/inventory.template.md` se existir.
+Template de inventário — use `docs/integrations/inventory.template.md` se existir.
 
 ---
 

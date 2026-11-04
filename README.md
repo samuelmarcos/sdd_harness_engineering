@@ -164,7 +164,7 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 | `docs/architecture/assessment.md` | Bounded contexts e restrições — validado pelo QA na revisão |
 | `docs/architecture/adr/` | Decisões arquiteturais (ex.: ADR-001 memória de sessão) |
 | `docs/integrations/inventory.md` | Ferramentas do time — preenchido por `/integracoes` |
-| `memory/memory.md` | Guia de implementação da memória curta/longa |
+| `docs/memory.md` | Guia de implementação da memória curta/longa |
 | `.sdd/config.json` | Paths protegidos, comandos test/build/lint, `sessionMemory` |
 | `.sdd/sdd.py` | CLI: guard, validate, approve, digest, session * |
 | `.claude/knowledge/session_manager.py` | Motor de memória curta/longa |
@@ -476,7 +476,7 @@ e `tech_writer` atualizam ao fechar features.
 #### `.claude/session-context/` — Memória curta
 
 Estado da sessão corrente. Gitignored (exceto `_templates/` e `.gitkeep`).
-Gerido por `SessionManager` — ver ADR-001 e `memory/memory.md`.
+Gerido por `SessionManager` — ver ADR-001 e `docs/memory.md`.
 
 | Arquivo / pasta | Função |
 |-----------------|--------|
@@ -638,11 +638,11 @@ Documente skills instaladas e quando aplicá-las em `CLAUDE.md`.
 - [AGENTS.md](./AGENTS.md) — processo e subagentes
 - [CLAUDE.md](./CLAUDE.md) — contexto técnico, scripts Python e memória de sessão
 - [fluxoSdd.md](./fluxoSdd.md) — fluxo visual e mapa de pastas
-- [memory/memory.md](./memory/memory.md) — spec de memória curta/longa
+- [docs/memory.md](./docs/memory.md) — spec de memória curta/longa
 - [docs/architecture/adr/001-session-context.md](./docs/architecture/adr/001-session-context.md) — ADR memória de sessão
 - [.claude/skills/integracoes/SKILL.md](./.claude/skills/integracoes/SKILL.md) — skill `/integracoes`
 - [.claude/skills/clarificar/SKILL.md](./.claude/skills/clarificar/SKILL.md) — skill `/clarificar`
 - [.claude/skills/kickoff/SKILL.md](./.claude/skills/kickoff/SKILL.md) — skill `/kickoff` completa
 - [specs/README.md](./specs/README.md) — guia da pasta specs (prelude + ciclo por feature)
 - [tests/README.md](./tests/README.md) — convenção `@covers`
-- [docs/proposals/001-sdd-hardening.md](./docs/proposals/001-sdd-hardening.md) — escopo reconciliado do hardening
+- [docs/architecture/001-sdd-hardening.md](./docs/architecture/001-sdd-hardening.md) — escopo reconciliado do hardening

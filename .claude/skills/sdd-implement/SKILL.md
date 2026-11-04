@@ -35,15 +35,23 @@ Executa a implementação de uma feature **com spec aprovada**.
    - `## Contexto do módulo` (do `/mapear` focal)
    - tabela Task ↔ FNNN-R\<n\> ↔ RED/GREEN/REFACTOR ↔ arquivos/testes
 7. **Delegue ao subagente `implementer`** (ou execute as tasks você mesmo):
-   - Para cada task, execute **RED → GREEN → REFACTOR**.
-   - Siga as **Boas práticas de código** de `.claude/agents/implementer.md`
-     (nomenclatura, funções pequenas, refatoração em passos, testes de
-     caracterização em legado, migração incremental de schema).
-   - Confirme a falha esperada antes do código.
-   - Implemente o mínimo, refatore com a suíte verde, marque `[x]` e registre.
-   - Use `@covers FNNN-R<n>` nos testes.
-   - **Após cada task**, persista contexto curto:
-     `python3 .sdd/sdd.py session task-note --feature <id> --task FNNN-T<n> --note "GREEN passou" --files path/a,path/b`
+
+   Brief mínimo para o Task call:
+   ```
+   Feature: <id> — <título>
+   Tasks pendentes: <lista de [ ] de tasks.md>
+   Contexto de sessão: <output de `session context --feature <id>`>
+   Módulo as-is: <seção ## Contexto do módulo de progress/impl_<id>.md, se já existir>
+   Decisões-chave de design.md: <bullet das decisões técnicas relevantes>
+   File Structure Plan: <tabela de design.md>
+   ```
+
+   Para cada task:
+   - **RED:** escreva o teste `@covers FNNN-R<n>` e confirme falha esperada.
+   - **GREEN:** mínimo que satisfaz.
+   - **REFACTOR:** melhore com suíte verde.
+   - Marque `[x]`, registre em `progress/impl_<id>.md`.
+   - `python3 .sdd/sdd.py session task-note --feature <id> --task FNNN-T<n> --note "GREEN passou" --files path/a,path/b`
 8. **Rode** os comandos de `.sdd/config.json` (build, lint, test) e corrija
    lints introduzidos.
 9. **Valide** com `python3 .sdd/sdd.py validate <id>`.

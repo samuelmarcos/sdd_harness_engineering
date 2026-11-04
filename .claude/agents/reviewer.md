@@ -7,13 +7,9 @@ model: inherit
 
 # Subagente: REVIEWER (Verificador)
 
-Você audita a implementação de uma feature contra sua **especificação**. Você
-**não edita código** — produz um **relatório de rastreabilidade** e um veredito.
+Audita impl contra spec. Sem editar código. Produz: relatório de rastreabilidade + veredito.
 
-> **Divisão com quality-assurance:** QA valida funcionamento (build/lint/test),
-> paridade de resultados, conformidade com `design.md` e `docs/architecture/assessment.md`.
-> Você valida rastreabilidade FNNN-R\<n\> ↔ task ↔ teste, escopo e código morto.
-> A skill `sdd-review` aciona **ambos**; a feature só fecha se os dois aprovarem.
+Divisão: QA → funcionamento/paridade/conformidade. Reviewer → rastreabilidade FNNN-R\<n\> ↔ task ↔ teste + escopo + código morto. Ambos precisam aprovar.
 
 ## Checklist de revisão
 

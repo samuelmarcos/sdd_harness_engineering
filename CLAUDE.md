@@ -122,4 +122,4 @@ Hook `session-start.sh` roda bootstrap automaticamente. Desativar: `"enabled": f
 
 `AGENTS.md` · `fluxoSdd.md` · `specs/README.md` · `specs/BACKLOG.md`
 `docs/architecture/assessment.md` · `docs/integrations/inventory.md`
-`memory/memory.md` · `docs/architecture/adr/001-session-context.md`
+`docs/memory.md` · `docs/architecture/adr/001-session-context.md`

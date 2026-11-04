@@ -53,16 +53,37 @@ Transições aplicadas por `review record`:
 1. **Leia** `requirements.md`, `tasks.md`, `progress/impl_<id>.md`, `design.md` e o código.
 
 2. **Acione o agente `quality-assurance`** (fluxo automático acima):
-   - Roda build, lint e testes de `.sdd/config.json` e reporta saída real.
-   - Verifica **paridade de resultados**: testes pré-existentes, corpus/baselines quando
-     aplicável, delta intencional documentado em `requirements.md` / `design.md`.
-   - Verifica conformidade com `design.md` (decisões técnicas, camadas, naming).
-   - Verifica conformidade com `docs/architecture/assessment.md` (bounded contexts, restrições).
+
+   Brief mínimo para o Task call:
+   ```
+   Feature: <id> — <título>
+   progress: progress/impl_<id>.md
+   design: specs/features/<id>/design.md
+   requirements: specs/features/<id>/requirements.md
+   assessment: docs/architecture/assessment.md
+   config (build/lint/test): .sdd/config.json
+   Arquivos tocados: <lista de progress/impl_<id>.md>
+   ```
+
+   - Roda build, lint, testes de `.sdd/config.json`; reporta saída real.
+   - Verifica paridade de resultados (pré-existentes, baselines, delta documentado).
+   - Verifica conformidade com `design.md` e `assessment.md`.
    - **Write** relatório + **`review record --kind qa`**.
 
 3. **Acione o agente `reviewer`** (fluxo automático acima):
-   - Monta a matriz de rastreabilidade FNNN-R\<n\> ↔ Task ↔ Teste ↔ Código.
-   - Verifica escopo (sem extras além do `design.md`) e código morto.
+
+   Brief mínimo para o Task call:
+   ```
+   Feature: <id> — <título>
+   requirements: specs/features/<id>/requirements.md
+   tasks: specs/features/<id>/tasks.md
+   progress: progress/impl_<id>.md
+   design: specs/features/<id>/design.md
+   Relatório QA: specs/features/<id>/reviews/qa-<timestamp>.md
+   ```
+
+   - Monta matriz de rastreabilidade FNNN-R\<n\> ↔ Task ↔ Teste ↔ Código.
+   - Verifica escopo e código morto.
    - **Write** relatório + **`review record --kind traceability`**.
 
 4. **Consolide** — confira que `status.json` aponta para os dois relatórios;
