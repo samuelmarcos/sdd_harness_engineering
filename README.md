@@ -132,7 +132,7 @@ este fluxo, mesmo que o harness de configuração mude por ferramenta.
 ├── .sdd/migrate_session_context.py  # Migração brownfield de session-context legado
 │
 ├── .claude/               # Harness Claude Code (subagentes, skills, hooks, memória)
-│   ├── agents/            # leader, spec_author, implementer, QA, reviewer, tech_writer
+│   ├── agents/            # leader, spec_author, design_critic, implementer, QA, reviewer, tech_writer
 │   ├── skills/            # kickoff, mapear, sdd-*, integracoes, clarificar, roadmap
 │   ├── hooks/             # session-start.sh, pre-tool-use.sh
 │   ├── knowledge/         # session_manager.py, checkpoints/, learned-lessons.md
@@ -350,7 +350,7 @@ são carregados como contexto de projeto no início da sessão.
 ```
 Harness Claude Code (.claude/)          SDD (specs/)              Código
 ─────────────────────────────          ─────────────              ──────
-agents/     → 6 subagentes            features/*/requirements    src/
+agents/     → 7 subagentes            features/*/requirements    src/
 skills/     → kickoff, integracoes,   features/*/design.md       tests/
               clarificar, mapear,      features/*/tasks.md        progress/
               roadmap, sdd-*           features/*/status.json
@@ -375,10 +375,11 @@ explicitamente (*"atue como leader"*).
 |---------|-------|---------------------|
 | `leader.md` | Orquestra o fluxo SDD, mantém `session-context/`, atualiza `status.json` e `BACKLOG.md` | ❌ |
 | `spec_author.md` | Escreve `requirements.md`, `design.md`, `tasks.md` em `specs/features/<id>/` | ❌ (só specs) |
+| `design_critic.md` | Crítica isolada da spec (simplicidade, clareza, falhas, prontidão) antes da aprovação humana | ❌ |
 | `implementer.md` | Executa `tasks.md`, marca `[x]`, registra em `progress/`, escreve testes; aplica o canon de boas práticas (Clean Code, Refactoring, Pragmatic Programmer…) | ✅ |
 | `quality-assurance.md` | Roda build/lint/test, valida paridade, design e `docs/architecture/assessment.md` | ❌ |
 | `reviewer.md` | Audita rastreabilidade FNNN-R\<n\> ↔ task ↔ teste e escopo | ❌ |
-| `tech_writer.md` | Atualiza README, CLAUDE, `docs/` e guias quando lógica/contratos mudam | ❌ (só docs) |
+| `tech_writer.md` | Atualiza README, CLAUDE, `docs/` e guias quando lógica/contratos mudam; audita drift via `/sdd-drift` | ❌ (só docs) |
 
 ---
 

@@ -59,6 +59,23 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 
 8. **Valide** com `python3 .sdd/sdd.py validate <id>`.
 
+8.5. **Acione o subagente `design_critic`** (contexto isolado — não repasse seu
+   raciocínio de autoria, só os arquivos abaixo):
+
+   Brief mínimo para o Task call:
+   ```
+   Feature: <id> — <título>
+   requirements: specs/features/<id>/requirements.md
+   design: specs/features/<id>/design.md
+   tasks: specs/features/<id>/tasks.md
+   assessment: docs/architecture/assessment.md (se existir)
+   inventario: docs/integrations/inventory.md (se existir)
+   ```
+
+   - Escreve `specs/features/<id>/reviews/design-critique-<timestamp>.md`.
+   - **Não bloqueia** — é insumo pro humano decidir na aprovação (só recomende
+     ajustar antes se houver achado 🔴 Bloqueador).
+
 9. **Defina `awaiting_approval` e pare** — não implemente nada ainda.
 
 ## Template — `requirements.md`
@@ -139,5 +156,6 @@ Cria o esqueleto de especificação de uma feature e a registra no backlog.
 
 ## Saída
 
-Apresente os 3 arquivos ao humano e declare: **"Aguardando aprovação. Diga
-'aprovado' para liberar a implementação."**
+Apresente os 3 arquivos **+ o resumo da crítica do `design_critic`** ao humano e
+declare: **"Aguardando aprovação. Diga 'aprovado' para liberar a implementação."**
+Se houver achado 🔴, destaque antes do pedido de aprovação — a decisão final é do humano.

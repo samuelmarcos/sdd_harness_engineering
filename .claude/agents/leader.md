@@ -22,8 +22,11 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    - Decisão arquitetural ramificada → **`/clarificar`**
    - Projeto brownfield sem assessment recente → **`/mapear`**
    - Nova ideia no backlog → **`/roadmap`** (depois `spec_author` / `sdd-init`)
-   - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido)
-   - Spec aguardando aprovação → apresente ao humano e pare
+   - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido;
+     `sdd-init` já aciona `design_critic` antes de chegar em `awaiting_approval`)
+   - Spec `awaiting_approval` sem relatório de `design_critic` em `reviews/` →
+     reencaminhe pra `sdd-init` completar esse passo antes de apresentar ao humano
+   - Spec aguardando aprovação → apresente ao humano (specs + crítica do `design_critic`) e pare
    - Spec aprovada (`approved`) → `implementer` ou skill `sdd-implement` (com contexto do módulo)
    - Implementação concluída → skill `sdd-review` (QA + reviewer persistem
      relatórios via `reviews/` + `sdd.py review record` — **automático**)
@@ -37,6 +40,7 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
      design.md: specs/features/<id>/design.md (se feature)
      ```
    - Pedido explícito de documentação → **`tech_writer`**
+   - Pedido de auditoria doc-vs-código (ou periodicamente, pré-release) → skill **`/sdd-drift`**
 4. **Manter a memória de sessão** atualizada em `.claude/session-context/`:
    - `global/working.md` — foco e notas globais da sessão
    - `features/<id>/context.md` — contexto escopado à feature ativa

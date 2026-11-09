@@ -154,8 +154,8 @@ Relatórios: `python3 .sdd/sdd.py review record <id> --kind qa|traceability ...`
 
 | Pasta | Função |
 |-------|--------|
-| `.claude/agents/` | leader, spec_author, implementer, QA, reviewer, tech_writer |
-| `.claude/skills/` | kickoff, integracoes, mapear, clarificar, roadmap, sdd-* |
+| `.claude/agents/` | leader, spec_author, design_critic, implementer, QA, reviewer, tech_writer |
+| `.claude/skills/` | kickoff, integracoes, mapear, clarificar, roadmap, sdd-* (init, implement, review, drift) |
 | `.claude/hooks/` | `session-start.sh`, `pre-tool-use.sh` |
 | `.claude/knowledge/` | session_manager.py, checkpoints/, lições, glossário |
 | `.claude/session-context/` | Memória curta (gitignored) |
