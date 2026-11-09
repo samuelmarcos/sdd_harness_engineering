@@ -85,8 +85,9 @@ Prelude: `/integracoes` (opcional) → `/kickoff` → `/mapear` (brownfield) →
 | `reviewer` | Verifica rastreabilidade FNNN-R\<n\> ↔ task ↔ teste | ❌ só relata |
 | `tech_writer` | Sincroniza README, CLAUDE, docs/ com código/decisões; também audita drift (`/sdd-drift`) | ❌ só docs |
 
-`sdd-init` aciona `design_critic` antes de pedir aprovação humana — achado é insumo,
-não gate automático (humano decide mesmo assim).
+`sdd-init` roda `design_critic` em loop (cap 5 rondas, convergência em 2 rondas limpas
+seguidas, para em churn — achado reaberto após fix) antes de pedir aprovação humana.
+Achado é insumo, não gate automático (humano decide mesmo assim).
 `sdd-review` coordena QA + reviewer — feature só fecha com **ambos** ✅.
 Após `done`, `leader` aciona `tech_writer` se houve impacto em contratos/APIs/arquitetura.
 

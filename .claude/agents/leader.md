@@ -23,10 +23,12 @@ protegidos (padrão: `src/` — veja `.sdd/config.json`).
    - Projeto brownfield sem assessment recente → **`/mapear`**
    - Nova ideia no backlog → **`/roadmap`** (depois `spec_author` / `sdd-init`)
    - Falta spec → `spec_author` ou skill `sdd-init` (**só após `/mapear`** se tocar código protegido;
-     `sdd-init` já aciona `design_critic` antes de chegar em `awaiting_approval`)
+     `sdd-init` já roda o loop `design_critic` — cap 5 rondas, convergência em 2 rondas
+     limpas, para em churn — antes de chegar em `awaiting_approval`)
    - Spec `awaiting_approval` sem relatório de `design_critic` em `reviews/` →
      reencaminhe pra `sdd-init` completar esse passo antes de apresentar ao humano
-   - Spec aguardando aprovação → apresente ao humano (specs + crítica do `design_critic`) e pare
+   - Spec aguardando aprovação → apresente ao humano (specs + resultado do loop de
+     crítica: rondas, convergiu/parou por quê, achados abertos) e pare
    - Spec aprovada (`approved`) → `implementer` ou skill `sdd-implement` (com contexto do módulo)
    - Implementação concluída → skill `sdd-review` (QA + reviewer persistem
      relatórios via `reviews/` + `sdd.py review record` — **automático**)
