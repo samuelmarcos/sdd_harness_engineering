@@ -34,6 +34,7 @@ Ligado ao fluxo (fora de `specs/`):
 | `Implemente a feature NNN` | `sdd-implement` |
 | `Revise a feature NNN` | `sdd-review` (QA + reviewer) |
 | `Atualize a documentação` | `tech_writer` |
+| `Verifique drift das specs` | `/sdd-drift` (specs done/verified vs código) |
 
 ---
 

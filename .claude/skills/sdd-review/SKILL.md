@@ -122,3 +122,5 @@ estiverem em `reviews/` com `review record` executado.
 - Relatórios e `status.json` (via CLI) são responsabilidade dos agentes QA/reviewer —
   não do humano.
 - Evidências concretas (arquivo:linha) em cada item reprovado.
+- Se QA ou reviewer falhar/travar sem emitir veredito, **não registre como aprovado**
+  por omissão — marque pendente e reacione o agente; silêncio nunca equivale a ✅.

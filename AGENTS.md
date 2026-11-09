@@ -58,6 +58,7 @@ python3 .sdd/sdd.py validate <feature>
 | SDD init | `sdd-init` | Nova feature |
 | SDD implement | `sdd-implement` | Spec aprovada → código |
 | SDD review | `sdd-review` | Pós-implementação → QA + reviewer |
+| SDD drift | `/sdd-drift` | Auditar specs `done`/`verified` vs código atual (periódico) |
 
 > **`/mapear`** — skill `.claude/skills/mapear/SKILL.md`. Leia e execute completo; não substitua por grep.
 
@@ -72,17 +73,21 @@ Prelude: `/integracoes` (opcional) → `/kickoff` → `/mapear` (brownfield) →
 
 ---
 
-## Os 6 Subagentes
+## Os 7 Subagentes
 
 | Agente | Papel | Edita código? |
 |--------|-------|---------------|
 | `leader` | Orquestra, mantém `session-context/`, decide próximo passo | ❌ |
 | `spec_author` | Escreve requirements, design, tasks | ❌ só specs |
+| `design_critic` | Crítica isolada da spec (simplicidade/clareza/falhas/prontidão) ANTES da aprovação | ❌ só relata |
 | `implementer` | Implementa seguindo tasks.md, marca `[x]`, canon de boas práticas | ✅ |
 | `quality-assurance` | Valida funcionamento, paridade, design, arquitetura | ❌ só relata |
 | `reviewer` | Verifica rastreabilidade FNNN-R\<n\> ↔ task ↔ teste | ❌ só relata |
-| `tech_writer` | Sincroniza README, CLAUDE, docs/ com código/decisões | ❌ só docs |
+| `tech_writer` | Sincroniza README, CLAUDE, docs/ com código/decisões; também audita drift (`/sdd-drift`) | ❌ só docs |
 
+`sdd-init` roda `design_critic` em loop (cap 5 rondas, convergência em 2 rondas limpas
+seguidas, para em churn — achado reaberto após fix) antes de pedir aprovação humana.
+Achado é insumo, não gate automático (humano decide mesmo assim).
 `sdd-review` coordena QA + reviewer — feature só fecha com **ambos** ✅.
 Após `done`, `leader` aciona `tech_writer` se houve impacto em contratos/APIs/arquitetura.
 
@@ -105,7 +110,7 @@ Após `done`, `leader` aciona `tech_writer` se houve impacto em contratos/APIs/a
 |------|----------|------|-----------|
 | 0. Mapeamento | `assessment.md`, ADRs | `/mapear` (BF) | — |
 | 1. Descoberta | `specs/BACKLOG.md` | `/roadmap`, humano | → `pending` |
-| 2. Especificação | requirements, design, tasks | `sdd-init` → `spec_author` | → `awaiting_approval` |
+| 2. Especificação | requirements, design, tasks + crítica | `sdd-init` → `spec_author` → `design_critic` | → `awaiting_approval` |
 | 3. Aprovação | "aprovado" persistido | **Humano** + `leader` | → `approved` |
 | 4. Implementação | tasks `[x]`, código, `progress/` | `sdd-implement` | → `in_progress` |
 | 5. Revisão | relatórios em `reviews/` + `review record` | QA, reviewer | → `in_review`/`verified` |

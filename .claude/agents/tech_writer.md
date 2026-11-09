@@ -21,6 +21,7 @@ Mantém documentação transversal (`CLAUDE.md`, `README.md`, `docs/`) alinhada 
 | `/mapear` global mudou muito o assessment | Sincronize resumo em `CLAUDE.md`/README |
 | QA/reviewer cita "impacto na documentação" | Contrato quebrado, comportamento alterado |
 | Pedido explícito | "Atualize a documentação" |
+| `/sdd-drift` | Modo **somente-leitura** — compara design.md (done/verified) com código, escreve relatório, não edita nada |
 
 Não é obrigatório em toda feature `done` — só quando algo **público** mudou.
 
